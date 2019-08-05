@@ -1,0 +1,675 @@
+ System butler 
+ 
+/* Aggiunto quinto argomento alla regola action( ... )
+ * 
+ * Aggiunto secondo argomento alla regola comando( ... )
+*/
+ 
+mqttBroker "localhost" : 1883    //192.168.1.18  192.168.43.229
+
+// 	MESSAGGI FRONTEND
+Event 		stopAppl			:	stopAppl
+Event 		reactivateAppl		:	reactivateAppl
+Dispatch	cmd					:	cmd( CMD, ARG1 )
+
+//	MESSAGGI SOLVER 
+Dispatch 	action				:	action( ACTION )
+Dispatch	actionComplete		:	actionComplete
+Dispatch	allActionsDone		: 	allActionsDone
+
+//	MESSAGGI SOLVER -> FRIDGE_HANDLER
+Dispatch	handleMsgFridge		:	handleMsgFridge( ACTION, NAME, CATEG, SYNC )
+
+//	MESSAGGI SOLVER -> PATHFINDER_HANDLER
+Dispatch 	handleMovement		:	handleMovement( DESTINATION )   
+
+//	MESSAGGI SOLVER -> STATE_HANDLER
+Dispatch	handleAdd			:	handleAdd( INV, NAME, CATEG )
+Dispatch	handleRemove		:	handleRemove( INV, NAME, CATEG )
+Dispatch	handleSwap			:	handleSwap( INV1, INV2, NAME, CATEG )
+
+
+//	MESSAGGI FRIDGE_HANDLER
+Event		msgFridge			:	msgFridge( ACTION, NAME, CATEG )  
+Dispatch	replyFridge			:	replyFridge( STATUS )  
+Dispatch	msgSent				: 	msgSent
+Event		missingFood			:	missingFood( FOOD )
+
+//	MESSAGGI PATHFINDER
+Dispatch 	stepFail      		: 	stepFail(R,T)
+Dispatch 	stepOk       		: 	stepOk(V) 
+Dispatch 	modelUpdate  		: 	modelUpdate( TARGET, VALUE )
+Dispatch	setGoal				:	setGoal( X, Y )
+Dispatch	goalReached			:	goalReached
+
+
+//	MESSAGGI TESTING
+Dispatch	check				: 	check( NUMBER )
+Dispatch	wait				: 	wait( TIME )
+Event		makingStep			:	makingStep ( X,Y )	
+Event		obstacle			:	obstacle (DISTANCE )
+Dispatch	removeObstacle		:	removeObstacle
+Dispatch	initObstacle		:	initObstacle
+
+
+
+//	MESSAGGI FRIDGE <-> FRONTEND
+Event		modelContent		:	modelContent( CONTENT ) 
+Event 		exposeFood			:	exposeFood
+
+//	MESSAGGI FRIDGE <-> BUTLER
+Event		msgFridge			:	msgFridge( ACTION, NAME, CATEGORY )   
+Dispatch	replyFridge			:	replyFridge( STATUS ) 
+
+//	MESSAGGI FRIDGE <-> STATE_HANDLER
+Dispatch	fridge_handleAdd			:	fridge_handleAdd( NAME, CATEG )
+Dispatch	fridge_handleRemove			:	fridge_handleRemove( NAME, CATEG )
+Dispatch	fridge_handleQuery			:	fridge_handleQuery( NAME, CATEG )
+Dispatch	fridge_handleExposeFood		:	fridge_handleExposeFood
+Dispatch	fridge_done					:	fridge_done ( STATUS )
+
+ 
+Context ctxButler      	ip [host="localhost"    port=8038]   -mqtt
+Context ctxRobotMind	ip [host="localhost"    port=8032]   -mqtt
+
+ExternalQActor resourcemodel  context ctxRobotMind
+ExternalQActor onestepahead   context ctxRobotMind
+
+//-----------------------------------------------------------------
+//-------------------------BUTLER----------------------------------
+//-----------------------------------------------------------------
+
+QActor butler_state_handler context ctxButler{
+	State s0 initial {
+		solve( consult( "sysRules.pl" )	 ) 
+		solve( consult( "roomState.pl" ) )
+		
+		solve( consult( "dataFunctions.pl" ) )
+		
+		solve( showRoomState )
+	}Goto waitAction
+	
+	State waitAction{		
+	} Transition t0 whenMsg handleAdd -> handleAdd
+					whenMsg handleRemove -> handleRemove
+					whenMsg handleSwap	-> handleSwap
+	
+	State handleAdd{
+		onMsg ( handleAdd : handleAdd( INV, NAME, CATEG ) ){
+			printCurrentMessage
+			
+			solve ( aggiungi( $payloadArg(0), $payloadArg(1), $payloadArg(2) ) )
+			
+			solve ( showRoomState )
+			
+			solve ( assert( done( handleAdd, $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) ) // testing function
+			
+			forward butler_solver -m actionComplete : actionComplete
+		}
+	}Goto waitAction
+	
+	State handleRemove{
+		onMsg ( handleRemove : handleRemove( INV, NAME, CATEG ) ){	
+			printCurrentMessage
+					
+			solve ( rimuovi( $payloadArg(0), $payloadArg(1), $payloadArg(2) ) )
+			
+			solve ( showRoomState )
+			
+			solve ( assert( done( handleRemove, $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) )  // testing function
+			
+			forward butler_solver -m actionComplete : actionComplete
+		}
+	}Goto waitAction
+	
+	State handleSwap{
+		onMsg ( handleSwap : handleSwap( INV1, INV2, NAME, CATEG ) ){
+			printCurrentMessage
+						
+			solve ( sposta( $payloadArg(0), $payloadArg(1), $payloadArg(2), $payloadArg(3) ) )
+			
+			solve ( showRoomState )
+			
+			solve ( assert( done( handleSwap, $payloadArg(0), $payloadArg(1), $payloadArg(2), $payloadArg(3) ) ) )  // testing function
+			
+			forward butler_solver -m actionComplete : actionComplete
+		}
+	}Goto waitAction
+}
+
+QActor butler_pathfinder_handler context ctxButler{
+	State s0 initial {
+		solve( consult("sysRules.pl")	 ) 
+		solve( consult("locationIndex.pl")	 ) 		
+	}Goto waitAction
+	
+	State waitAction{		
+	} Transition t0 whenMsg handleMovement -> handleMovement
+		
+	State handleMovement{
+		onMsg(handleMovement : handleMovement( DESTINATION ) ){
+			printCurrentMessage
+			
+			solve( location( $payloadArg(0), X, Y))						
+			
+			forward pathfinder -m setGoal : setGoal( #X, #Y )
+			
+			solve( assert( movingTo($payloadArg(0))))  // testing function
+		}
+	} Transition t0 whenMsg goalReached -> assertMove
+	
+	State assertMove{		
+		solve( retract( movingTo(DEST))) 	 // testing function
+		["val Dest= getCurSol(\"DEST\")"]  // testing function
+		
+		solve( assert( done( movimento, $Dest ) ) )  // testing function
+		
+		forward butler_solver -m actionComplete : actionComplete
+		
+	} Goto waitAction
+	
+	
+}
+
+QActor butler_fridge_handler context ctxButler{
+	State s0 initial {
+		solve( consult("sysRules.pl")	 ) 
+	}Goto waitAction
+	
+	State waitAction{		
+	} Transition t0 whenMsg handleMsgFridge -> handleMsgFridge
+	
+	State handleMsgFridge{
+		onMsg ( handleMsgFridge : handleMsgFridge( ACTION, NAME, CATEG, true ) ){
+			printCurrentMessage
+			solve ( assert( currentFood( $payloadArg(1) ) ) )
+			
+			emit msgFridge : msgFridge( $payloadArg(0), $payloadArg(1), $payloadArg(2) )
+			
+			solve ( assert( done( actionMsgFridgeSync, $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) )  // testing function
+		}		
+		onMsg ( handleMsgFridge : handleMsgFridge( ACTION, NAME, CATEG, false ) ){
+			printCurrentMessage
+			
+			emit msgFridge : msgFridge( $payloadArg(0), $payloadArg(1), $payloadArg(2) )
+			
+			solve ( assert( done( actionMsgFridgeAsync, $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) )  // testing function
+			
+			forward butler_fridge_handler -m msgSent : msgSent
+		}
+	} Transition t0 whenMsg msgSent -> actionDone
+					whenMsg replyFridge -> handleReply
+	
+	State actionDone{
+		forward butler_solver -m actionComplete : actionComplete
+	} Goto waitAction
+	
+	State handleReply{	
+		solve( currentFood( CIBO ))	
+		
+		onMsg( replyFridge : replyFridge(null)){		
+			printCurrentMessage				
+		}
+		onMsg( replyFridge : replyFridge(present)){		
+			printCurrentMessage					
+			forward butler_solver -m cmd : cmd( successAddFood, #CIBO)
+		}
+		onMsg( replyFridge : replyFridge(absent)){
+			printCurrentMessage
+			emit missingFood : missingFood( #CIBO )	
+			
+			//forward frontend_dummy -m missingFood : missingFood( torta )		
+		}
+	} Goto actionDone
+	
+	 
+}
+
+QActor butler_test_handler context ctxButler{
+	State s0 initial {
+		solve( consult("sysRules.pl")	 ) 
+	}Goto waitAction
+	
+	State waitAction{		
+	} Transition t0 whenMsg check -> handleCheck
+					whenMsg wait -> handleWait
+	
+	State handleCheck{
+		onMsg (check : check( NUMBER )){
+			printCurrentMessage
+			
+			solve ( assert( done ( check , $payloadArg(0) ) ) )
+		}
+	
+	}Goto alertSolver
+	
+	State handleWait{
+		onMsg( wait : wait( TIME )){			
+			printCurrentMessage
+			
+			solve ( assert( done ( wait ,  $payloadArg(0)) ) )		
+		}	
+	}Transition t0 whenTime 2000 -> alertSolver
+	
+	State alertSolver{
+			forward butler_solver -m actionComplete : actionComplete		
+	} Goto waitAction
+}
+
+QActor butler_solver context ctxButler{
+	
+	State s0 initial {
+		solve( consult("sysRules.pl")	 )  
+		
+		solve( consult("cmds.pl")	 )		
+		solve( consult("solverModel.pl")	 )			
+		
+		//run itunibo.coap.modelResourceCoap.create( myself, "fridge" ) //CoAP access
+		
+	}Goto waitCmd
+	
+	State waitCmd{			
+			solve( aggiornaStato( waitCmd , waiting , waiting ) )
+			
+	} Transition t0 whenMsg cmd -> solveCmd
+	
+	State solveCmd{		
+		onMsg(cmd: cmd (CMD, ARG1 )){
+			printCurrentMessage
+			solve( aggiornaStato( solveCmd , $payloadArg(0) , $payloadArg(1) ) )	
+					
+			solve( comando( $payloadArg(0), $payloadArg(1) ))	
+		}		
+	} Goto solveAction
+	
+	State solveAction{	
+		solve( showSolverState )
+			
+		solve( retract( azione( ARG0, ARG1, ARG2, ARG3, ARG4 ) ))
+		
+			
+		if "currentSolution.isSuccess()"{	
+			
+			["val Action= currentSolution.getVarValue(\"ARG0\").toString()"]	
+					
+			if "Action==\"check\"" {
+				["val Number= currentSolution.getVarValue(\"ARG1\").toString()"]
+				
+				forward butler_test_handler -m check : check ( $Number)
+			}
+			if "Action==\"wait\"" {
+				["val Time= currentSolution.getVarValue(\"ARG1\").toString()"]
+				
+				forward butler_test_handler -m wait : wait($Time)
+			}						
+			if "Action==\"aggiungiOggetto\"" {
+				["val Inventario= currentSolution.getVarValue(\"ARG1\").toString()"]
+				["val Nome= currentSolution.getVarValue(\"ARG2\").toString()"]
+				["val Categoria= currentSolution.getVarValue(\"ARG3\").toString()"]
+				
+				forward butler_state_handler -m handleAdd : handleAdd ( $Inventario, $Nome, $Categoria )
+			}
+			if "Action==\"rimuoviOggetto\"" {
+				["val Inventario= currentSolution.getVarValue(\"ARG1\").toString()"]
+				["val Nome= currentSolution.getVarValue(\"ARG2\").toString()"]
+				["val Categoria= currentSolution.getVarValue(\"ARG3\").toString()"]
+				
+				forward butler_state_handler -m handleRemove : handleRemove ( $Inventario, $Nome, $Categoria )
+			}
+			if "Action==\"spostaOggetto\"" {
+				["val InventarioMitt= currentSolution.getVarValue(\"ARG1\").toString()"]
+				["val InventarioDest= currentSolution.getVarValue(\"ARG2\").toString()"]
+				["val Nome= currentSolution.getVarValue(\"ARG3\").toString()"]
+				["val Categoria= currentSolution.getVarValue(\"ARG4\").toString()"]
+				  
+				forward butler_state_handler -m handleSwap : handleSwap ( $InventarioMitt, $InventarioDest, $Nome, $Categoria )
+			}	
+			if "Action==\"notificaFrigo\"" {
+				["val Azione= currentSolution.getVarValue(\"ARG1\").toString()"]
+				["val Nome= currentSolution.getVarValue(\"ARG2\").toString()"]
+				["val Categoria= currentSolution.getVarValue(\"ARG3\").toString()"]
+				["val Sync = currentSolution.getVarValue(\"ARG4\").toString()"]
+				
+				forward butler_fridge_handler -m handleMsgFridge : handleMsgFridge ( $Azione, $Nome, $Categoria, $Sync )
+			}
+			if "Action==\"movimento\"" {
+				["val Destinazione = getCurSol(\"ARG1\").toString()"]
+				
+				forward butler_pathfinder_handler -m handleMovement : handleMovement( $Destinazione )
+			}
+		
+		} else {
+			forward butler_solver -m allActionsDone : allActionsDone
+		}
+	} Transition t0 whenEvent 	stopAppl -> stoppedSolvedAction
+					whenMsg 	actionComplete -> solveAction
+					whenMsg 	allActionsDone -> waitCmd
+					
+	State stoppedSolvedAction{		
+		printCurrentMessage		
+		
+		solve( aggiornaStato( stoppedSolvedAction ))
+				
+	} Transition t0 whenEvent reactivateAppl -> restartSolvedAction
+	
+	State restartSolvedAction{		
+		solve (assert( done ( restartSolvedAction ) ) )
+		
+		solve( aggiornaStato( restartSolvedAction ))
+		
+		printCurrentMessage			
+	} Transition t0 whenEvent 	stopAppl -> stoppedSolvedAction
+					whenMsg 	actionComplete -> solveAction
+					whenMsg 	allActionsDone -> waitCmd
+					
+} 
+
+//-----------------------------------------------------------------
+//----------------------PATHFINDER---------------------------------
+//-----------------------------------------------------------------
+
+QActor pathfinder context ctxButler{
+	["
+var mapEmpty    = false
+val mapname     = \"roomMapWithTable\" 
+
+var Curmove     = \"\" 
+var curmoveIsForward = false 
+
+//REAL ROBOT
+//var StepTime   = 1000 	 
+//var PauseTime  = 500 
+
+//VIRTUAL ROBOT
+var StepTime   = 330	//for virtual
+var PauseTime  = 500
+
+var PauseTimeL  = PauseTime.toLong()
+"]
+
+	State s0 initial{
+	    solve( consult("moves.pl")	 )
+		//run itunibo.coap.client.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel" )
+ 		run itunibo.planner.plannerUtil.initAI()
+  		run itunibo.planner.moveUtils.loadRoomMap( myself, mapname )	
+  		run itunibo.planner.moveUtils.showCurrentRobotState()
+	 	["	val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()  "]  
+	 	println("MapStr: $MapStr")
+	 	println("&&&  workerinroom STARTED")			
+	}Goto waitGoal
+	
+	State waitGoal{		
+	}Transition t0 whenMsg setGoal -> setGoalAndDo 
+	
+	State setGoalAndDo{
+  		onMsg( setGoal : setGoal(X,Y) ) {
+  			printCurrentMessage
+  			["storeCurrentMessageForReply()"]
+  			run itunibo.planner.plannerUtil.setGoal(payloadArg(0),payloadArg(1))
+  			run itunibo.planner.moveUtils.doPlan( myself )
+  		}
+  	}
+  	Goto executePlannedActions   
+  
+	State executePlannedActions{ 
+		solve( move(M) ) 
+		ifSolved {  
+			["Curmove = getCurSol(\"M\").toString()"] 
+            ["curmoveIsForward=(Curmove == \"w\")"]            
+		} else { 
+			["Curmove = \"\""]
+			["curmoveIsForward=false"]
+		}  
+ 	}
+	Goto checkAndDoAction  if "(Curmove.length>0) " else goalOk 
+
+ 	State goalOk{		  
+ 		run itunibo.planner.moveUtils.showCurrentRobotState()
+	 	["	val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()  "]
+	 	forward resourcemodel -m modelUpdate : modelUpdate(roomMap,$MapStr)   
+	 	["replyToCaller(\"goalReached\", \"goalReached(ok)\")"]  //TODO: introduce a qak operation
+	}Goto waitGoal
+  	
+ 	//Execute the move if it is a rotation or halt
+	State checkAndDoAction{	 }
+	Goto doForwardMove if "curmoveIsForward" else doTheMove
+	  
+	State doTheMove{
+		solve(retract( move(M) ))
+		run itunibo.planner.moveUtils.rotate(myself, Curmove, PauseTime)
+  	}
+	Goto executePlannedActions 
+	
+ 	State doForwardMove{
+ 		delayVar PauseTimeL  //Otherwise is too fast, even with remote interaction
+ 		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime) //forwards to onestepahead
+ 		
+		
+ 		solve( curPos(X,Y) )
+ 		emit makingStep : makingStep( #X, #Y )
+	} 
+	Transition t0   whenEvent stopAppl -> handleStopAppl
+					whenMsg stepOk     -> handleStepOk   
+					whenMsg stepFail   -> hadleStepFail 	
+    	
+    	
+   State handleStopAppl{
+    	println("APPLICATION STOPPED. Waiting for a reactivate")
+    	solve( assert( done( stop )))
+    } 
+    Transition t0  whenEvent reactivateAppl -> handleReactivateAppl
+    
+    State handleReactivateAppl{
+    	println("APPLICATION RESUMED")
+    	solve( assert( done( restart )))
+    } 
+	Transition t0   whenEvent stopAppl -> handleStopAppl
+					whenMsg stepOk   -> handleStepOk   
+					whenMsg stepFail -> hadleStepFail 	
+    
+	State handleStepOk{
+ 		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+ 		solve(retract( move(M) ))
+	}
+	Goto executePlannedActions
+	 
+ 	State hadleStepFail{ 
+ 		onMsg( stepFail : stepFail(RESULT,DURATION)){
+ 			printCurrentMessage
+ 			
+ 			solve( curPos(X,Y) )	
+ 			["val X = getCurSol(\"X\").toString()"]
+ 			["val Y = getCurSol(\"Y\").toString()"]
+			solve( assert( stopped, $X, $Y ))	
+					
+			["val Duration= payloadArg(1).toInt()"]
+			run itunibo.planner.moveUtils.backToCompensate(myself,Duration,PauseTime)
+ 		}
+	} Transition t0 whenTime 2000 -> executePlannedActions
+}
+
+//-----------------------------------------------------------------
+//--------------------TESTING DUMMYS-------------------------------
+//-----------------------------------------------------------------
+
+QActor dummy_obstacle context ctxButler{
+	State s0 initial{
+		solve( consult("sysRules.pl")	 )  
+	} Goto waitInit
+	
+	State waitInit{		
+	}Transition t0 whenMsg initObstacle -> waitStep
+	
+	State waitStep{		
+	} Transition t0 whenMsg makingStep -> obstacleAppears
+					whenMsg removeObstacle -> remove
+	
+	State obstacleAppears{
+		onMsg(makingStep : makingStep( 3, 0 )){	
+			printCurrentMessage		
+			solve( assert( done( obstacle, 3, 0)))
+			emit obstacle : obstacle (0)
+		}	
+	} 	Goto waitStep
+	
+	State remove{		
+			solve( assert( done( removeObstacle, 3, 0)))
+	}Goto waitInit
+}
+
+QActor frontend_dummy context ctxButler{
+	State s0 initial{
+		solve( consult("sysRules.pl")	 ) 		 
+	} Goto waitEvent
+	
+	State waitEvent{		
+	} Transition t0 whenMsg missingFood -> persistMissingFood
+					whenMsg modelContent -> persistModelContent
+	
+	State persistMissingFood{
+		onMsg ( missingFood : missingFood( FOOD ) ){
+			printCurrentMessage
+						
+			solve( assert( missingFood( $payloadArg(0) ) ) )
+		}
+	} Goto waitEvent
+	
+	State persistModelContent{
+		onMsg ( modelContent : modelContent( CONTENT )  ){
+			printCurrentMessage
+			
+			solve( assert( content( content )  ) )
+		}
+	} Goto waitEvent
+}
+
+//-----------------------------------------------------------------
+//----------------------------FRIDGE-------------------------------
+//-----------------------------------------------------------------
+
+QActor fridge_cmd_solver context ctxButler {
+	["var reply = true"]
+	
+	State s0 initial {
+		solve( consult("sysRules.pl")	 ) 				
+		
+		//run itunibo.coap.modelResourceCoap.create( myself, "fridge" ) //CoAP access
+		
+	}Goto waitCmd
+	
+	State waitCmd {		
+	} Transition t0 whenEvent 	msgFridge -> examineCmd
+					whenEvent	exposeFood -> examineCmd
+	
+	State examineCmd{
+		onMsg ( msgFridge : msgFridge( aggiungi, NAME, CATEGORY ) ) {
+			printCurrentMessage
+			solve ( assert( received( $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) ) // testing function
+			forward fridge_model_handler -m fridge_handleAdd : fridge_handleAdd( $payloadArg(1), $payloadArg(2) )
+		}
+		onMsg ( msgFridge : msgFridge( rimuovi, NAME, CATEGORY ) ) {
+			printCurrentMessage
+			solve ( assert( received( $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) ) // testing function
+			forward fridge_model_handler -m fridge_handleRemove : fridge_handleRemove( $payloadArg(1), $payloadArg(2) )
+		}
+		onMsg ( msgFridge : msgFridge( conferma, NAME, CATEGORY ) ) {
+			printCurrentMessage
+			["storeCurrentMessageForReply()"]
+			//["reply = true"]
+			solve ( assert( received( $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) ) // testing function
+			forward fridge_model_handler -m fridge_handleQuery : fridge_handleQuery( $payloadArg(1), $payloadArg(2) )
+		}
+		onMsg ( exposeFood : exposeFood ) {
+			printCurrentMessage
+			solve ( assert( received( exposeFood ) ) ) // testing function
+			forward fridge_model_handler -m fridge_handleExposeFood : fridge_handleExposeFood
+		}
+		onMsg ( msgFridge : msgFridge( null, null , null ) ) {// testing only
+			printCurrentMessage
+			solve ( assert( received( $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) ) 
+		}
+	} Transition t0 whenMsg fridge_done and "!reply"-> waitCmd
+					whenMsg fridge_done and "reply" -> replyThenWaitCmd
+					
+	State replyThenWaitCmd{
+		onMsg( fridge_done : fridge_done( STATUS )){
+			printCurrentMessage
+			
+			["replyToCaller(\"replyFridge\", \"replyFridge(${payloadArg(0)})\")"]			
+		}		
+	} Goto waitCmd
+}
+
+QActor fridge_model_handler context ctxButler{
+	["var DoneStatus = \"null\" "]
+	
+	State s0 initial{		
+		solve( consult("sysRules.pl")	 ) 	
+		      
+		solve( consult("fridgeModel.pl")	 ) 
+		
+		solve( consult("dataFunctions.pl")	 ) 
+		
+		solve( showResourceModel ) 
+		
+	} Goto waitCmd
+	
+	State waitCmd{		
+	} Transition t0 whenMsg fridge_handleAdd -> handleAdd
+					whenMsg fridge_handleRemove -> handleRemove
+					whenMsg fridge_handleQuery -> handleQuery
+					whenMsg fridge_handleExposeFood -> handleExposeFood
+	
+	
+	State handleAdd{
+		onMsg (fridge_handleAdd : fridge_handleAdd( NAME, CATEG ) ){
+			printCurrentMessage			
+			
+			solve( aggiungi( frigo, $payloadArg(0) , $payloadArg(1)) )			
+			solve( showResourceModel ) 	
+			
+			run itunibo.fridge.fridgeResourceModelSupport.exposeFridgeModel( myself )
+		}
+	} Goto done
+	
+	State handleRemove{
+		onMsg (fridge_handleRemove : fridge_handleRemove( NAME, CATEG ) ){
+			printCurrentMessage			
+			
+			solve( rimuovi( frigo, $payloadArg(0) , $payloadArg(1)) )			
+			solve( showResourceModel ) 		
+			
+			run itunibo.fridge.fridgeResourceModelSupport.exposeFridgeModel( myself )	
+		}
+	} Goto done
+	
+	State handleQuery{
+		onMsg ( fridge_handleQuery : fridge_handleQuery( NAME, CATEG)){
+			printCurrentMessage
+					
+			solve( presenza($payloadArg(0),$payloadArg(1),frigo) )
+			
+			ifSolved {
+				["DoneStatus = \"present\" "]
+			} else {				
+				["DoneStatus = \"absent\" "]
+			}
+		}
+	}Goto done
+	
+	State handleExposeFood{	
+		onMsg( fridge_handleExposeFood : fridge_handleExposeFood){
+			printCurrentMessage
+			
+			solve( inventario( frigo , INVENTORY ) )
+				
+			emit modelContent :  modelContent( frigo (#INVENTORY) ) 
+		}
+	} Goto done
+	
+	State done{
+		forward fridge_cmd_solver -m fridge_done : fridge_done( $DoneStatus)
+	} Goto waitCmd
+	
+	
+}
