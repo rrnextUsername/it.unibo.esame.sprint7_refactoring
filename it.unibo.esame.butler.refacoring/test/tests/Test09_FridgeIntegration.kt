@@ -53,12 +53,12 @@ class TestModificaInventario {
 		solveCheckGoal(butler_fridge_handler!!, "done( actionMsgFridgeAsync, rimuovi, torta, cibo )")
 
 		//presence or absence of objects
-		checkObj(butler_state_handler!!, true, "presenza( piatto, silverware, robot )")
-		checkObj(butler_state_handler!!, false, "presenza( tazza, silverware, robot )")
-		checkObj(butler_state_handler!!, true, "presenza( tazza, silverware, dishwasher )")
-		checkObj(butler_state_handler!!, false, "presenza( pizza, silverware, table )")
-		checkObj(fridge_model_handler!!, false, "presenza( torta, cibo, frigo )")
-		checkObj(fridge_model_handler!!, true, "presenza( budino, cibo, frigo )")
+		checkObj(butler_state_handler!!, true, "presenza( robot, piatto, silverware )")
+		checkObj(butler_state_handler!!, false, "presenza( robot, tazza, silverware )")
+		checkObj(butler_state_handler!!, true, "presenza( dishwasher, tazza, silverware )")
+		checkObj(butler_state_handler!!, false, "presenza( table, pizza, silverware )")
+		checkObj(fridge_model_handler!!, false, "presenza( frigo, torta, cibo )")
+		checkObj(fridge_model_handler!!, true, "presenza( frigo, budino, cibo )")
 		
 		//messages received
 		solveCheckGoal(fridge_cmd_solver!!, "received( aggiungi, budino, cibo )")

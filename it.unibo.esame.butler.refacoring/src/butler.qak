@@ -217,8 +217,6 @@ QActor butler_fridge_handler context ctxButler{
 		onMsg( replyFridge : replyFridge(absent)){
 			printCurrentMessage
 			emit missingFood : missingFood( #CIBO )	
-			
-			//forward frontend_dummy -m missingFood : missingFood( torta )		
 		}
 	} Goto actionDone
 	
@@ -279,6 +277,7 @@ QActor butler_solver context ctxButler{
 			solve( aggiornaStato( solveCmd , $payloadArg(0) , $payloadArg(1) ) )	
 					
 			solve( comando( $payloadArg(0), $payloadArg(1) ))	
+			println(currentSolution)
 		}		
 	} Goto solveAction
 	
@@ -626,6 +625,7 @@ QActor fridge_model_handler context ctxButler{
 			printCurrentMessage			
 			
 			solve( aggiungi( frigo, $payloadArg(0) , $payloadArg(1)) )			
+			solve( assert(done(handleAdd, $payloadArg(0) , $payloadArg(1) ))) // testing
 			solve( showResourceModel ) 	
 			
 			run itunibo.fridge.fridgeResourceModelSupport.exposeFridgeModel( myself )
@@ -637,6 +637,7 @@ QActor fridge_model_handler context ctxButler{
 			printCurrentMessage			
 			
 			solve( rimuovi( frigo, $payloadArg(0) , $payloadArg(1)) )			
+			solve( assert(done(handleRemove, $payloadArg(0) , $payloadArg(1) ))) // testing
 			solve( showResourceModel ) 		
 			
 			run itunibo.fridge.fridgeResourceModelSupport.exposeFridgeModel( myself )	
@@ -647,7 +648,8 @@ QActor fridge_model_handler context ctxButler{
 		onMsg ( fridge_handleQuery : fridge_handleQuery( NAME, CATEG)){
 			printCurrentMessage
 					
-			solve( presenza($payloadArg(0),$payloadArg(1),frigo) )
+			solve( assert(done(handleQuery, $payloadArg(0) , $payloadArg(1) ))) // testing
+			solve( presenza(frigo, $payloadArg(0),$payloadArg(1)) )
 			
 			ifSolved {
 				["DoneStatus = \"present\" "]

@@ -1,10 +1,10 @@
-inventario( table , [(pizza,cibo)] ).
+inventario( table , [(pizza,cibo),(coltello,silverware)] ).
 inventario( robot , [(panzerotto,cibo),(tazza,silverware)] ).
-inventario( pantry , [] ).
+inventario( pantry , [(piatto,silverware)] ).
 inventario( dishwasher , [] ).
 
 showRoomState :- 
-	output(" ---------- FRIDGE CURRENT STATE ---------- "),
+	output(" ---------- ROOM CURRENT STATE ---------- "),
 	showResources,
 	output(" ------------------------------------------ ").
 		

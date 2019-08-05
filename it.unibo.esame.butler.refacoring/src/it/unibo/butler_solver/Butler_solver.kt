@@ -37,6 +37,7 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("aggiornaStato(solveCmd,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
 								solve("comando(${payloadArg(0)},${payloadArg(1)})","") //set resVar	
+								println(currentSolution)
 						}
 					}
 					 transition( edgeName="goto",targetState="solveAction", cond=doswitch() )

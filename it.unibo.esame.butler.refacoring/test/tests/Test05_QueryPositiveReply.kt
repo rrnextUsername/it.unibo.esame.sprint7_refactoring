@@ -47,7 +47,7 @@ class TestPositiveReply {
 	fun queryFoodTest() {
 		println(" %%%%%%% TestButler  queryFoodTest with food present")
 		
-		solveCheckGoal(fridge_model_handler!!, "presenza( pasta, cibo, frigo )")
+		solveCheckGoal(fridge_model_handler!!, "presenza( frigo, pasta, cibo )")
 		sendCmdMessage(resource!!,"pasta",5000)
 		
 		solveCheckGoal(resource_fridge_handler!!,"done(actionMsgFridgeSync, conferma, pasta, cibo )")

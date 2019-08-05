@@ -38,7 +38,7 @@ class TestAddFood {
 	fun addFoodTest() {
 		println(" %%%%%%% TestFridge  addFoodTest ")
 		sendMessageToFridge(fridge_solver!!,"panzerotto",3000)
-		solveCheckGoal(fridge_model_handler!!,"presenza(panzerotto, cibo, frigo)")
+		solveCheckGoal(fridge_model_handler!!,"presenza(frigo, panzerotto, cibo)")
  	}
 //----------------------------------------
 	

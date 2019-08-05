@@ -34,7 +34,8 @@ class TestSolveCmd {
 	@Test
 	fun addSolveCmd() {
 		println(" %%%%%%% TestButtler  solveCmdTest ")
-		sendCmdMessage(resource!!,6000)
+		
+		sendCmdMessageArgs(resource!!,6000)
 		
 		//completeded all tasks
 		solveCheckGoal(test_resource!!,"done( check, 1 )")
@@ -55,9 +56,17 @@ class TestSolveCmd {
 	}
 	
 	fun sendCmdMessage( actor : ActorBasic, time : Long ){
-			println("--- sendQueryMessage comando( testMain, _ )")
+			println("--- sendQueryMessage comando( testMain )")
 		actor.scope.launch{
-			MsgUtil.sendMsg("cmd", "cmd( testMain, _ )" ,actor ) 
+			MsgUtil.sendMsg("cmd", "cmd( testMain )" ,actor ) 
+ 		}
+		delay(time) //give time to do the move
+  	}
+	
+	fun sendCmdMessageArgs( actor : ActorBasic, time : Long ){
+			println("--- sendQueryMessage comando( testMain, null )")
+		actor.scope.launch{
+			MsgUtil.sendMsg("cmd", "cmd( testMain, null )" ,actor ) 
  		}
 		delay(time) //give time to do the move
   	}

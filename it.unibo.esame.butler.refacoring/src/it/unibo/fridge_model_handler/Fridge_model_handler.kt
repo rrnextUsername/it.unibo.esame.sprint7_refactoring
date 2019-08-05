@@ -40,6 +40,7 @@ class Fridge_model_handler ( name: String, scope: CoroutineScope ) : ActorBasicF
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("aggiungi(frigo,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
+								solve("assert(done(handleAdd,${payloadArg(0)},${payloadArg(1)}))","") //set resVar	
 								solve("showResourceModel","") //set resVar	
 								itunibo.fridge.fridgeResourceModelSupport.exposeFridgeModel(myself)
 						}
@@ -52,6 +53,7 @@ class Fridge_model_handler ( name: String, scope: CoroutineScope ) : ActorBasicF
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("rimuovi(frigo,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
+								solve("assert(done(handleRemove,${payloadArg(0)},${payloadArg(1)}))","") //set resVar	
 								solve("showResourceModel","") //set resVar	
 								itunibo.fridge.fridgeResourceModelSupport.exposeFridgeModel(myself)
 						}
@@ -63,7 +65,8 @@ class Fridge_model_handler ( name: String, scope: CoroutineScope ) : ActorBasicF
 						if( checkMsgContent( Term.createTerm("fridge_handleQuery(NAME,CATEG)"), Term.createTerm("fridge_handleQuery(NAME,CATEG)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("presenza(${payloadArg(0)},${payloadArg(1)},frigo)","") //set resVar	
+								solve("assert(done(handleQuery,${payloadArg(0)},${payloadArg(1)}))","") //set resVar	
+								solve("presenza(frigo,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
 								if(currentSolution.isSuccess()) { DoneStatus = "present" 
 								 }
 								else

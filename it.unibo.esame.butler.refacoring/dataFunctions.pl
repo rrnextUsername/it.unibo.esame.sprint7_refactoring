@@ -11,7 +11,7 @@ sposta(InventarioVecchio, InventarioNuovo,  Nome, Categoria) :-
 	rimuovi( InventarioVecchio, Nome, Categoria ),
 	aggiungi( InventarioNuovo, Nome, Categoria ).
 	
-presenza(Nome, Categoria, Inventario) :-
+presenza(Inventario, Nome, Categoria) :-
 	inventario(Inventario, Lista),
 	presente(Lista, (Nome, Categoria)).
 

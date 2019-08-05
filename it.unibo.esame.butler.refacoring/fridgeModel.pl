@@ -1,4 +1,4 @@
-inventario( frigo , [(torta,cibo),(panuozzi,cibo),(pasta,cibo)] ).
+inventario( frigo , [(torta,cibo),(panuozzi,cibo),(pasta,cibo),(crema,cibo)] ).
 
 showResourceModel :- 
 	output(" ---------- FRIDGE CURRENT STATE ---------- "),

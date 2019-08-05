@@ -47,7 +47,7 @@ class TestNegativeReply {
 	@Test
 	fun queryFoodTest() {
 		println(" %%%%%%% TestButler  queryFoodTest with food absent")
-		solveCheckGoalFalse(fridge_model_handler!!, "presenza( panzerotto, cibo, frigo )")
+		solveCheckGoalFalse(fridge_model_handler!!, "presenza( frigo, panzerotto, cibo )")
 		
 		sendCmdMessage(resource!!, "panzerotto", 5000)
 		
