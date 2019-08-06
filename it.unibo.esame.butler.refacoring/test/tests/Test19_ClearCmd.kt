@@ -42,7 +42,7 @@ class TestClearCmd {
 		//completeded all tasks
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","table")
 		
-		solveCheckGoal(resource!!,"done( handleSwap, butlerInvInv, butlerInv, pizza, cibo )")
+		solveCheckGoal(resource!!,"done( handleSwap, tableInv, butlerInv, pizza, cibo )")
 		solveCheckGoal(resource!!,"done( handleSwap, tableInv, butlerInv, coltello, silverware )")
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","fridge")

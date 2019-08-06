@@ -36,7 +36,7 @@ class TestDestinationReached {
 	@Test
 	fun destinationReachedTest() {
 		println(" %%%%%%% TestPathfinder  test destinazione ")
-		sendCmdMessage(butler_solver!!,5000)
+		sendCmdMessage(butler_solver!!,7000)
 		solveCheckGoal(butler_pathfinder_handler!!,"done(movimento, location1)")
 		solveCheckGoal(pathfinder!!,"curPos(5,0)")
  	}

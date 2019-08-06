@@ -46,22 +46,22 @@ class TestAddFoodPresentCmd {
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","fridge")
 		
-		solveCheckGoal(resource!!,"done( handleAdd, robot, panuozzi, cibo )")
+		solveCheckGoal(resource!!,"done( handleAdd, butlerInv, panuozzi, cibo )")
 		solveCheckGoal(fridge_model_handler!!,"done( handleRemove, panuozzi, cibo )")
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","table")
 		
-		solveCheckGoal(resource!!,"done( handleSwap, robot, table, panuozzi, cibo )")
+		solveCheckGoal(resource!!,"done( handleSwap, butlerInv, tableInv, panuozzi, cibo )")
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","home")
 		
 		
 		//final state consistent		
-		solveCheckGoal(resource!!,"presenza( table, panuozzi, cibo )")
+		solveCheckGoal(resource!!,"presenza( tableInv, panuozzi, cibo )")
 		
-		solveCheckGoal(resource!!,"presenza( robot, panuozzi, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( butlerInv, panuozzi, cibo )","fail")
 		
-		solveCheckGoal(fridge_model_handler!!,"presenza( frigo, panuozzi, cibo )","fail")
+		solveCheckGoal(fridge_model_handler!!,"presenza( frigoInv, panuozzi, cibo )","fail")
 		
 		//returned to waitCmd
 		solveCheckGoal(resource!!,"stato( waitCmd, _ , _ )")

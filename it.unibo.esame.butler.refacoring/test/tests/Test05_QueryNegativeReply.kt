@@ -56,7 +56,7 @@ class TestNegativeReply {
 		
 		solveCheckGoal(resource_fridge_dummy!!, "received( conferma, panzerotto, cibo )")
 		
-		solveCheckGoal(resource_front_end_dummy!!, "missingFood(panzerotto)")
+		solveCheckGoal(resource_front_end_dummy!!, "missingFood")
 		
 		solveCheckGoalFalse(resource_test_handler!!, "done(check, 1)")
 		solveCheckGoal(resource!!, "stato(waitCmd, _ , _)")

@@ -30,11 +30,7 @@ class Frontend_dummy ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("persistMissingFood") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("missingFood(FOOD)"), Term.createTerm("missingFood(FOOD)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("assert(missingFood(${payloadArg(0)}))","") //set resVar	
-						}
+						solve("assert(missingFood)","") //set resVar	
 					}
 					 transition( edgeName="goto",targetState="waitEvent", cond=doswitch() )
 				}	 

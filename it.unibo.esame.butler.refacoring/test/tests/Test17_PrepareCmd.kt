@@ -37,7 +37,7 @@ class TestPrepareCmd {
 	fun addSolveCmd() {
 		println(" %%%%%%% TestButtler  solveCmdTest ")
 		
-		sendCmdMessage(resource!!,30000000)
+		sendCmdMessage(resource!!,30000)
 		
 		//completeded all tasks
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","pantry")

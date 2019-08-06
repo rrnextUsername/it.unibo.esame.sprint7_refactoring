@@ -52,7 +52,8 @@ class TestAddFoodCmdAbsent {
 		
 		solveCheckGoal(fridge_model_handler!!,"presenza( frigo, bomboloni, cibo )","fail")
 				
-		solveCheckGoal(frontend_dummy!!,"missingFood( bomboloni )")
+		//solveCheckGoal(frontend_dummy!!,"content( missingFood( state ( bomboloni ) ) )")
+		solveCheckGoal(frontend_dummy!!,"missingFood")
 		
 		//returned to waitCmd
 		solveCheckGoal(resource!!,"stato( waitCmd, _ , _ )")		

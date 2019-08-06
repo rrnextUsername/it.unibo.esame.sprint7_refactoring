@@ -49,6 +49,14 @@ lateinit var resourcecoap : modelResourceCoap
  			}	
 	}
 	
+	fun updateMissingFoodModel( actor: ActorBasic, content: String ){
+		println("			resourceModelSupport updateFridgeModel content=$content")
+			actor.scope.launch{
+				actor.emit( "missingFood" , "content( missingFood( state( $content )))" )
+ 				//resourcecoap.updateState( "fridge_inv( '$content' )" )
+ 			}	
+	}
+	
 	fun updateRoomModel( actor: ActorBasic, inventory:String, content: String ){
 		println("			resourceModelSupport updateRoomModel content=$content")
 			actor.scope.launch{

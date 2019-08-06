@@ -23,7 +23,6 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						solve("consult('cmds.pl')","") //set resVar	
 						solve("consult('solverModel.pl')","") //set resVar	
 						solve("consult('dataFunctions.pl')","") //set resVar	
-						delay(2000) 
 						solve("showRoomState","") //set resVar	
 						solve("inventario(butlerInv,L)","") //set resVar	
 						var Inventario = getCurSol("L").toString()

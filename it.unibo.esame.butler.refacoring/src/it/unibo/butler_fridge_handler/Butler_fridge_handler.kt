@@ -56,7 +56,8 @@ class Butler_fridge_handler ( name: String, scope: CoroutineScope ) : ActorBasic
 						if( checkMsgContent( Term.createTerm("replyFridge(STATUS)"), Term.createTerm("replyFridge(absent)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								emit("missingFood", "missingFood(${getCurSol("CIBO").toString()})" ) 
+								val Cibo= getCurSol("CIBO").toString()
+								itunibo.robot.resourceModelSupport.updateMissingFoodModel(myself ,Cibo )
 								forward("actionComplete", "actionComplete(fail)" ,"butler_solver" ) 
 						}
 					}

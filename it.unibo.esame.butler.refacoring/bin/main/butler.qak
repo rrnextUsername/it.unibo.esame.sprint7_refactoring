@@ -93,9 +93,6 @@ QActor butler_solver context ctxButler{
 		solve( consult( "dataFunctions.pl" ) )
 		
 		//run itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel" )
-		
-		delay 2000
-				
 		solve( showRoomState )
 		
 		solve( inventario(butlerInv, L ))				
@@ -313,7 +310,8 @@ QActor butler_fridge_handler context ctxButler{
 		}
 		onMsg( replyFridge : replyFridge(absent)){
 			printCurrentMessage
-			emit missingFood : missingFood( #CIBO )	
+			["val Cibo= getCurSol(\"CIBO\").toString()"]
+			run itunibo.robot.resourceModelSupport.updateMissingFoodModel( myself, Cibo )
 			forward butler_solver -m actionComplete : actionComplete ( fail )
 		}
 	} Goto waitAction
@@ -557,11 +555,7 @@ QActor frontend_dummy context ctxButler{
 					whenMsg modelContent -> persistModelContent
 	
 	State persistMissingFood{
-		onMsg ( missingFood : missingFood( FOOD ) ){
-			printCurrentMessage
-						
-			solve( assert( missingFood( $payloadArg(0) ) ) )
-		}
+			solve( assert( missingFood ) )
 	} Goto waitEvent
 	
 	State persistModelContent{
