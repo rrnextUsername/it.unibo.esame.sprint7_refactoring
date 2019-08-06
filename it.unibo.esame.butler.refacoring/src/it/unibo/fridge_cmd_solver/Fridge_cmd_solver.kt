@@ -15,31 +15,33 @@ class Fridge_cmd_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm(
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var reply = true
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						solve("consult('sysRules.pl')","") //set resVar	
+						emit("exposeFood", "exposeFood" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t033",targetState="examineCmd",cond=whenEvent("msgFridge"))
-					transition(edgeName="t034",targetState="examineCmd",cond=whenEvent("exposeFood"))
+					 transition(edgeName="t031",targetState="examineCmd",cond=whenEvent("msgFridge"))
+					transition(edgeName="t032",targetState="examineCmd",cond=whenEvent("exposeFood"))
 				}	 
 				state("examineCmd") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEG)"), Term.createTerm("msgFridge(aggiungi,NAME,CATEGORY)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
+								storeCurrentMessageForReply()
 								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
 								forward("fridge_handleAdd", "fridge_handleAdd(${payloadArg(1)},${payloadArg(2)})" ,"fridge_model_handler" ) 
 						}
 						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEG)"), Term.createTerm("msgFridge(rimuovi,NAME,CATEGORY)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
+								storeCurrentMessageForReply()
 								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
 								forward("fridge_handleRemove", "fridge_handleRemove(${payloadArg(1)},${payloadArg(2)})" ,"fridge_model_handler" ) 
 						}
@@ -62,8 +64,7 @@ class Fridge_cmd_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm(
 								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
 						}
 					}
-					 transition(edgeName="t035",targetState="waitCmd",cond=whenDispatchGuarded("fridge_done",{!reply}))
-					transition(edgeName="t036",targetState="replyThenWaitCmd",cond=whenDispatchGuarded("fridge_done",{reply}))
+					 transition(edgeName="t033",targetState="replyThenWaitCmd",cond=whenDispatch("fridge_done"))
 				}	 
 				state("replyThenWaitCmd") { //this:State
 					action { //it:State

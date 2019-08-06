@@ -25,13 +25,13 @@ class Dummy_obstacle ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("waitInit") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t028",targetState="waitStep",cond=whenDispatch("initObstacle"))
+					 transition(edgeName="t026",targetState="waitStep",cond=whenDispatch("initObstacle"))
 				}	 
 				state("waitStep") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t029",targetState="obstacleAppears",cond=whenDispatch("makingStep"))
-					transition(edgeName="t030",targetState="remove",cond=whenDispatch("removeObstacle"))
+					 transition(edgeName="t027",targetState="obstacleAppears",cond=whenDispatch("makingStep"))
+					transition(edgeName="t028",targetState="remove",cond=whenDispatch("removeObstacle"))
 				}	 
 				state("obstacleAppears") { //this:State
 					action { //it:State

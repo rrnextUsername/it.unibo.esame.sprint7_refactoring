@@ -40,7 +40,7 @@ class TestQueryASync {
 	fun addFoodTest() {
 		println(" %%%%%%% TestFridge  queryTest ")
 		sendCmdMessage(resource!!,5000)
-		solveCheckGoal(resource_fridge_handler!!,"done(actionMsgFridgeAsync, _, _, _)")
+		solveCheckGoal(resource_fridge_handler!!,"done(actionMsgFridgeSync, _, _, _)")
 		solveCheckGoal(resource_fridge!!,"received( _, _, _ )")
  	}
 //----------------------------------------

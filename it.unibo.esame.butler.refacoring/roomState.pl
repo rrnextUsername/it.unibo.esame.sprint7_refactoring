@@ -1,7 +1,7 @@
-inventario( table , [(pizza,cibo),(coltello,silverware)] ).
-inventario( robot , [(panzerotto,cibo),(tazza,silverware)] ).
-inventario( pantry , [(piatto,silverware)] ).
-inventario( dishwasher , [] ).
+inventario( tableInv , [(coltello,silverware),(cannelloni,cibo),(pizza,cibo)] ).
+inventario( butlerInv , [(panzerotto,cibo),(cassata,cibo),(tazza,silverware)] ).
+inventario( pantryInv , [(piatto,silverware)] ).
+inventario( dishwasherInv , [] ).
 
 showRoomState :- 
 	output(" ---------- ROOM CURRENT STATE ---------- "),
@@ -9,18 +9,18 @@ showRoomState :-
 	output(" ------------------------------------------ ").
 		
 showResources :- 
-	inventario( table , T ),
+	inventario( tableInv , T ),
 	outputL("|"),
- 	output( inventario( table , T ) ),
-	inventario( robot , R ),
+ 	output( inventario( tableInv , T ) ),
+	inventario( butlerInv , B ),
 	outputL("|"),
- 	output( inventario( robot , R ) ),
-	inventario( pantry , P ),
+ 	output( inventario( butlerInv , B ) ),
+	inventario( pantryInv , P ),
 	outputL("|"),
- 	output( inventario( pantry , P ) ),
-	inventario( dishwasher , D ),
+ 	output( inventario( pantryInv , P ) ),
+	inventario( dishwasherInv , D ),
 	outputL("|"),
- 	output( inventario( dishwasher , D ) ),
+ 	output( inventario( dishwasherInv , D ) ),
 	fail.
 showResources.			
 

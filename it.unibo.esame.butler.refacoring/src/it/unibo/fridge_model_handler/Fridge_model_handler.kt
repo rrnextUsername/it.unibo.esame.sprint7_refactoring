@@ -29,20 +29,22 @@ class Fridge_model_handler ( name: String, scope: CoroutineScope ) : ActorBasicF
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t037",targetState="handleAdd",cond=whenDispatch("fridge_handleAdd"))
-					transition(edgeName="t038",targetState="handleRemove",cond=whenDispatch("fridge_handleRemove"))
-					transition(edgeName="t039",targetState="handleQuery",cond=whenDispatch("fridge_handleQuery"))
-					transition(edgeName="t040",targetState="handleExposeFood",cond=whenDispatch("fridge_handleExposeFood"))
+					 transition(edgeName="t034",targetState="handleAdd",cond=whenDispatch("fridge_handleAdd"))
+					transition(edgeName="t035",targetState="handleRemove",cond=whenDispatch("fridge_handleRemove"))
+					transition(edgeName="t036",targetState="handleQuery",cond=whenDispatch("fridge_handleQuery"))
+					transition(edgeName="t037",targetState="handleExposeFood",cond=whenDispatch("fridge_handleExposeFood"))
 				}	 
 				state("handleAdd") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("fridge_handleAdd(NAME,CATEG)"), Term.createTerm("fridge_handleAdd(NAME,CATEG)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("aggiungi(frigo,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
+								solve("aggiungi(frigoInv,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
 								solve("assert(done(handleAdd,${payloadArg(0)},${payloadArg(1)}))","") //set resVar	
 								solve("showResourceModel","") //set resVar	
-								itunibo.fridge.fridgeResourceModelSupport.exposeFridgeModel(myself)
+								solve("inventario(frigoInv,L)","") //set resVar	
+								val Inventario = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
 						}
 					}
 					 transition( edgeName="goto",targetState="done", cond=doswitch() )
@@ -52,10 +54,12 @@ class Fridge_model_handler ( name: String, scope: CoroutineScope ) : ActorBasicF
 						if( checkMsgContent( Term.createTerm("fridge_handleRemove(NAME,CATEG)"), Term.createTerm("fridge_handleRemove(NAME,CATEG)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("rimuovi(frigo,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
+								solve("rimuovi(frigoInv,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
 								solve("assert(done(handleRemove,${payloadArg(0)},${payloadArg(1)}))","") //set resVar	
 								solve("showResourceModel","") //set resVar	
-								itunibo.fridge.fridgeResourceModelSupport.exposeFridgeModel(myself)
+								solve("inventario(frigoInv,L)","") //set resVar	
+								val Inventario = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
 						}
 					}
 					 transition( edgeName="goto",targetState="done", cond=doswitch() )
@@ -66,7 +70,7 @@ class Fridge_model_handler ( name: String, scope: CoroutineScope ) : ActorBasicF
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("assert(done(handleQuery,${payloadArg(0)},${payloadArg(1)}))","") //set resVar	
-								solve("presenza(frigo,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
+								solve("presenza(frigoInv,${payloadArg(0)},${payloadArg(1)})","") //set resVar	
 								if(currentSolution.isSuccess()) { DoneStatus = "present" 
 								 }
 								else
@@ -81,8 +85,11 @@ class Fridge_model_handler ( name: String, scope: CoroutineScope ) : ActorBasicF
 						if( checkMsgContent( Term.createTerm("fridge_handleExposeFood"), Term.createTerm("fridge_handleExposeFood"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("inventario(frigo,INVENTORY)","") //set resVar	
-								emit("modelContent", "modelContent(frigo(${getCurSol("INVENTORY").toString()}))" ) 
+								solve("inventario(frigoInv,INVENTORY)","") //set resVar	
+								solve("inventario(frigoInv,L)","") //set resVar	
+								val Inventario = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
+								emit("modelContent", "modelContent(frigo(Inventario))" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="done", cond=doswitch() )

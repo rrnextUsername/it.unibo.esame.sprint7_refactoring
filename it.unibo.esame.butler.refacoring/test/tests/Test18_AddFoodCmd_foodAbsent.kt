@@ -12,7 +12,6 @@ import it.unibo.kactor.MsgUtil
 
 class TestAddFoodCmdAbsent {
   var resource : ActorBasic? = null
-  var butler_state_handler : ActorBasic? = null
   var butler_pathfinder_handler : ActorBasic? = null
   var fridge_model_handler : ActorBasic? = null
   var frontend_dummy : ActorBasic? = null
@@ -25,11 +24,10 @@ class TestAddFoodCmdAbsent {
  			}
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("butler_solver")	
-			butler_state_handler = sysUtil.getActor("butler_state_handler")	
 			butler_pathfinder_handler = sysUtil.getActor("butler_pathfinder_handler")	
 			fridge_model_handler = sysUtil.getActor("fridge_model_handler")		
 			frontend_dummy = sysUtil.getActor("frontend_dummy")	
-		    println(" %%%%%%% TestButtler getActors resource=${resource} test_resource=${butler_state_handler}")
+		    println(" %%%%%%% TestButtler getActors resource=${resource}")
  	}
  
 	@AfterEach
@@ -48,9 +46,9 @@ class TestAddFoodCmdAbsent {
 		
 		
 		//final state consistent		
-		solveCheckGoal(butler_state_handler!!,"presenza( table, bomboloni, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( table, bomboloni, cibo )","fail")
 		
-		solveCheckGoal(butler_state_handler!!,"presenza( robot, bomboloni, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( robot, bomboloni, cibo )","fail")
 		
 		solveCheckGoal(fridge_model_handler!!,"presenza( frigo, bomboloni, cibo )","fail")
 				

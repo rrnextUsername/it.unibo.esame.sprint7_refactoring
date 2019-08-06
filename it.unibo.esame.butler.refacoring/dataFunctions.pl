@@ -14,7 +14,7 @@ sposta(InventarioVecchio, InventarioNuovo,  Nome, Categoria) :-
 presenza(Inventario, Nome, Categoria) :-
 	inventario(Inventario, Lista),
 	presente(Lista, (Nome, Categoria)).
-
+	
 %% Comandi Interni %%
 
 rimuovi_([], [], Oggetto). %% Solo se non deve esplodere quando togli un elemento non esistente

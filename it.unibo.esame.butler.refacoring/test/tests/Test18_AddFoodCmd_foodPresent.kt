@@ -12,7 +12,6 @@ import it.unibo.kactor.MsgUtil
 
 class TestAddFoodPresentCmd {
   var resource : ActorBasic? = null
-  var butler_state_handler : ActorBasic? = null
   var butler_pathfinder_handler : ActorBasic? = null
   var fridge_model_handler : ActorBasic? = null
   var frontend_dummy : ActorBasic? = null
@@ -25,11 +24,10 @@ class TestAddFoodPresentCmd {
  			}
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("butler_solver")	
-			butler_state_handler = sysUtil.getActor("butler_state_handler")	
 			butler_pathfinder_handler = sysUtil.getActor("butler_pathfinder_handler")	
 			fridge_model_handler = sysUtil.getActor("fridge_model_handler")		
 			frontend_dummy = sysUtil.getActor("frontend_dummy")	
-		    println(" %%%%%%% TestButtler getActors resource=${resource} test_resource=${butler_state_handler}")
+		    println(" %%%%%%% TestButtler getActors resource=${resource}")
  	}
  
 	@AfterEach
@@ -48,20 +46,20 @@ class TestAddFoodPresentCmd {
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","fridge")
 		
-		solveCheckGoal(butler_state_handler!!,"done( handleAdd, robot, panuozzi, cibo )")
+		solveCheckGoal(resource!!,"done( handleAdd, robot, panuozzi, cibo )")
 		solveCheckGoal(fridge_model_handler!!,"done( handleRemove, panuozzi, cibo )")
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","table")
 		
-		solveCheckGoal(butler_state_handler!!,"done( handleSwap, robot, table, panuozzi, cibo )")
+		solveCheckGoal(resource!!,"done( handleSwap, robot, table, panuozzi, cibo )")
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","home")
 		
 		
 		//final state consistent		
-		solveCheckGoal(butler_state_handler!!,"presenza( table, panuozzi, cibo )")
+		solveCheckGoal(resource!!,"presenza( table, panuozzi, cibo )")
 		
-		solveCheckGoal(butler_state_handler!!,"presenza( robot, panuozzi, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( robot, panuozzi, cibo )","fail")
 		
 		solveCheckGoal(fridge_model_handler!!,"presenza( frigo, panuozzi, cibo )","fail")
 		

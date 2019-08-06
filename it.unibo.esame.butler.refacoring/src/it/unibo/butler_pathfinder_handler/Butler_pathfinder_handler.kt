@@ -26,7 +26,7 @@ class Butler_pathfinder_handler ( name: String, scope: CoroutineScope ) : ActorB
 				state("waitAction") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t03",targetState="handleMovement",cond=whenDispatch("handleMovement"))
+					 transition(edgeName="t09",targetState="handleMovement",cond=whenDispatch("handleMovement"))
 				}	 
 				state("handleMovement") { //this:State
 					action { //it:State
@@ -38,14 +38,14 @@ class Butler_pathfinder_handler ( name: String, scope: CoroutineScope ) : ActorB
 								solve("assert(movingTo(${payloadArg(0)}))","") //set resVar	
 						}
 					}
-					 transition(edgeName="t04",targetState="assertMove",cond=whenDispatch("goalReached"))
+					 transition(edgeName="t010",targetState="assertMove",cond=whenDispatch("goalReached"))
 				}	 
 				state("assertMove") { //this:State
 					action { //it:State
 						solve("retract(movingTo(DEST))","") //set resVar	
 						val Dest= getCurSol("DEST")
 						solve("assert(done(movimento,$Dest))","") //set resVar	
-						forward("actionComplete", "actionComplete" ,"butler_solver" ) 
+						forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
 					}
 					 transition( edgeName="goto",targetState="waitAction", cond=doswitch() )
 				}	 

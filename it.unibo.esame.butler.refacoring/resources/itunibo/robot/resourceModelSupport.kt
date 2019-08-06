@@ -12,13 +12,13 @@ lateinit var resourcecoap : modelResourceCoap
 	}
 	
 	fun updateRobotModel( actor: ActorBasic, content: String ){
- 			actor.solve(  "action(robot, move($content) )" ) //change the robot state model
+ 			actor.solve(  "action(robot, move($content))" ) //change the robot state model
 			actor.solve(  "model( A, robot, STATE )" )
 			val RobotState = actor.getCurSol("STATE")
 			//println("			resourceModelSupport updateModel RobotState=$RobotState")
 			actor.scope.launch{
  				actor.emit( "modelChanged" , "modelChanged(  robot,  $content)" )  //for the robotmind
-				actor.emit( "modelContent" , "content( robot( $RobotState ) )" )
+				actor.emit( "modelContent" , "content( robot( $RobotState ))" )
 				resourcecoap.updateState( "robot( $RobotState )" )
   			}	
 	}	
@@ -28,7 +28,7 @@ lateinit var resourcecoap : modelResourceCoap
 			val SonarState = actor.getCurSol("STATE")
 			//println("			resourceModelSupport updateSonarRobotModel SonarState=$SonarState")
 			actor.scope.launch{
- 				actor.emit( "modelContent" , "content( sonarRobot( $SonarState ) )" )
+ 				actor.emit( "modelContent" , "content( sonarRobot( $SonarState ))" )
 				resourcecoap.updateState( "sonarRobot( $SonarState )" )
  			}	
 	}
@@ -36,8 +36,24 @@ lateinit var resourcecoap : modelResourceCoap
 	fun updateRoomMapModel( actor: ActorBasic, content: String ){
 		println("			resourceModelSupport updateRoomMapModel content=$content")
 			actor.scope.launch{
-				actor.emit( "modelContent" , "content( roomMap( state( '$content' ) ) )" )
+				actor.emit( "modelContent" , "content( roomMap( state( '$content' )))" )
  				resourcecoap.updateState( "roomMap( '$content' )" )
+ 			}	
+	}
+	
+	fun updateFridgeModel( actor: ActorBasic, content: String ){
+		println("			resourceModelSupport updateFridgeModel content=$content")
+			actor.scope.launch{
+				actor.emit( "modelContent" , "content( fridgeInv( state( $content )))" )
+ 				//resourcecoap.updateState( "fridge_inv( '$content' )" )
+ 			}	
+	}
+	
+	fun updateRoomModel( actor: ActorBasic, inventory:String, content: String ){
+		println("			resourceModelSupport updateRoomModel content=$content")
+			actor.scope.launch{
+				actor.emit( "modelContent" , "content( $inventory( state( $content )))" )
+ 				//resourcecoap.updateState( "$inventory( '$content' )" )
  			}	
 	}
 }

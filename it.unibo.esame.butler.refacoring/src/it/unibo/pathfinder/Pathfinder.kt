@@ -35,6 +35,7 @@ class Pathfinder ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("s0") { //this:State
 					action { //it:State
 						solve("consult('moves.pl')","") //set resVar	
+						itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel"  )
 						itunibo.planner.plannerUtil.initAI(  )
 						itunibo.planner.moveUtils.loadRoomMap(myself ,mapname )
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
@@ -47,7 +48,7 @@ class Pathfinder ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("waitGoal") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t019",targetState="setGoalAndDo",cond=whenDispatch("setGoal"))
+					 transition(edgeName="t017",targetState="setGoalAndDo",cond=whenDispatch("setGoal"))
 				}	 
 				state("setGoalAndDo") { //this:State
 					action { //it:State
@@ -104,25 +105,25 @@ class Pathfinder ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						solve("curPos(X,Y)","") //set resVar	
 						emit("makingStep", "makingStep(${getCurSol("X").toString()},${getCurSol("Y").toString()})" ) 
 					}
-					 transition(edgeName="t020",targetState="handleStopAppl",cond=whenEvent("stopAppl"))
-					transition(edgeName="t021",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t022",targetState="hadleStepFail",cond=whenDispatch("stepFail"))
+					 transition(edgeName="t018",targetState="handleStopAppl",cond=whenEvent("stopAppl"))
+					transition(edgeName="t019",targetState="handleStepOk",cond=whenDispatch("stepOk"))
+					transition(edgeName="t020",targetState="hadleStepFail",cond=whenDispatch("stepFail"))
 				}	 
 				state("handleStopAppl") { //this:State
 					action { //it:State
 						println("APPLICATION STOPPED. Waiting for a reactivate")
 						solve("assert(done(stop))","") //set resVar	
 					}
-					 transition(edgeName="t023",targetState="handleReactivateAppl",cond=whenEvent("reactivateAppl"))
+					 transition(edgeName="t021",targetState="handleReactivateAppl",cond=whenEvent("reactivateAppl"))
 				}	 
 				state("handleReactivateAppl") { //this:State
 					action { //it:State
 						println("APPLICATION RESUMED")
 						solve("assert(done(restart))","") //set resVar	
 					}
-					 transition(edgeName="t024",targetState="handleStopAppl",cond=whenEvent("stopAppl"))
-					transition(edgeName="t025",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t026",targetState="hadleStepFail",cond=whenDispatch("stepFail"))
+					 transition(edgeName="t022",targetState="handleStopAppl",cond=whenEvent("stopAppl"))
+					transition(edgeName="t023",targetState="handleStepOk",cond=whenDispatch("stepOk"))
+					transition(edgeName="t024",targetState="hadleStepFail",cond=whenDispatch("stepFail"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
@@ -146,7 +147,7 @@ class Pathfinder ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						stateTimer = TimerActor("timer_hadleStepFail", 
 							scope, context!!, "local_tout_pathfinder_hadleStepFail", 2000.toLong() )
 					}
-					 transition(edgeName="t027",targetState="executePlannedActions",cond=whenTimeout("local_tout_pathfinder_hadleStepFail"))   
+					 transition(edgeName="t025",targetState="executePlannedActions",cond=whenTimeout("local_tout_pathfinder_hadleStepFail"))   
 				}	 
 			}
 		}

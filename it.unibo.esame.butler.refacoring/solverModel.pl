@@ -22,10 +22,10 @@ showAzione.
 
 showSolverState :- 
 	output(" ---------- SOLVER CURRENT STATE ---------- "),
-	showResources,
+	showSolverResources,
 	output(" ------------------------------------------ ").
 		
-showResources :- 	 
+showSolverResources :- 	 
 	stato( STATO, CMD , ARG ),
 	outputL("|"),
  	output( stato( STATO, CMD , ARG ) ),
@@ -33,11 +33,17 @@ showResources :-
  	outputL("|--->"),
 	output( azione( ARG1, ARG2, ARG3, ARG4, ARG5 ) ),
 	fail.
-showResources.	
+showSolverResources.	
+
+retractAllActions :-
+	retract( azione( _, _, _, _, _ ) ),
+	fail.
+retractAllActions.
 
 
-output( M ) :- stdout <- println( M ).
-outputL( M ) :- stdout <- print( M ).
 
-initResourceTheory :- output("resourceModel loaded").
+%%output( M ) :- stdout <- println( M ).
+%%outputL( M ) :- stdout <- print( M ).
+
+initResourceTheory :- output("solverResourceModel loaded").
 :- initialization(initResourceTheory).

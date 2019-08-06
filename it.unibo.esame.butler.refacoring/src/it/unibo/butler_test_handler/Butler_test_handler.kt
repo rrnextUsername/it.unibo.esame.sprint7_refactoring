@@ -25,8 +25,8 @@ class Butler_test_handler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("waitAction") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t08",targetState="handleCheck",cond=whenDispatch("check"))
-					transition(edgeName="t09",targetState="handleWait",cond=whenDispatch("wait"))
+					 transition(edgeName="t013",targetState="handleCheck",cond=whenDispatch("check"))
+					transition(edgeName="t014",targetState="handleWait",cond=whenDispatch("wait"))
 				}	 
 				state("handleCheck") { //this:State
 					action { //it:State
@@ -48,7 +48,7 @@ class Butler_test_handler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 						stateTimer = TimerActor("timer_handleWait", 
 							scope, context!!, "local_tout_butler_test_handler_handleWait", 2000.toLong() )
 					}
-					 transition(edgeName="t010",targetState="alertSolver",cond=whenTimeout("local_tout_butler_test_handler_handleWait"))   
+					 transition(edgeName="t015",targetState="alertSolver",cond=whenTimeout("local_tout_butler_test_handler_handleWait"))   
 				}	 
 				state("alertSolver") { //this:State
 					action { //it:State

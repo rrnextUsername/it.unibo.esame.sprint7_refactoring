@@ -4,19 +4,26 @@ comando( testMain, null ) :-
 	assert( azione( check, 2, 2, 2, 2 ) ).
 	
 comando( testModificaInventario, null ) :-
-	assert( azione( notificaFrigo, aggiungi, budino, cibo, false ) ),
-	assert( azione( notificaFrigo, rimuovi, torta, cibo, false ) ),
-	assert( azione( aggiungiOggetto, robot, piatto, silverware, null ) ),
-	assert( azione( spostaOggetto, robot, dishwasher, tazza, silverware ) ),
-	assert( azione( rimuoviOggetto, table, pizza, cibo, null ) ),
-	assert( azione( notificaFrigo, conferma, torta, cibo, true ) ),
-	assert( azione( notificaFrigo, conferma, budino, cibo, true ) ).
+	assert( azione( notificaFrigo, aggiungi, budino, cibo, null ) ),
+	assert( azione( notificaFrigo, rimuovi, torta, cibo, null ) ),
+	assert( azione( aggiungiOggetto, butlerInv, piatto, silverware, null ) ),
+	assert( azione( spostaOggetto, butlerInv, dishwasherInv, tazza, silverware ) ),
+	assert( azione( rimuoviOggetto, tableInv, pizza, cibo, null ) ),
+	assert( azione( notificaFrigo, conferma, budino, cibo, null ) ),
+	assert( azione( notificaFrigo, conferma, torta, cibo, null ) ),
+	assert( azione( notificaFrigo, conferma, pasta, cibo, null ) ).
 	
 comando( testSync, NomeCibo ) :-
-	assert( azione( notificaFrigo, conferma, NomeCibo, cibo, true ) ).
+	assert( azione( notificaFrigo, conferma, NomeCibo, cibo, null ) ),
+	assert( azione( continuaPiano, testSyncSuccess, NomeCibo, null, null ) ).
+	
+continua( testSyncSuccess, NomeCibo) :-
+	assert( azione( check, 1, 2, 3, 4 ) ).
+	
+	
 	
 comando( testASync, null ):-
-	assert( azione( notificaFrigo, null, null, null, false ) ).
+	assert( azione( notificaFrigo, null, null, null, null ) ).
 	
 comando( testDestination, null ):-
 	assert( azione( movimento, location1, null, null, null ) ).
@@ -31,38 +38,42 @@ comando( testOrder, null ):-
 %% TESTING OF ACTUAL BUTLER CMDS
 comando( prepare, null ) :-
 	assert( azione( movimento, pantry , null, null, null) ),
-	assert( azione( spostaOggetto, pantry, robot, piatto, silverware ) ),
+	assert( azione( spostaOggetto, pantryInv, butlerInv, piatto, silverware ) ),
 	assert( azione( movimento, fridge, null, null, null ) ), 
-	assert( azione( aggiungiOggetto, robot, torta, cibo, null ) ),
-	assert( azione( notificaFrigo, rimuovi, torta, cibo, false ) ), 
-	assert( azione( aggiungiOggetto, robot, crema, cibo, null  ) ),
-	assert( azione( notificaFrigo, rimuovi, crema, cibo, false ) ), 
+	assert( azione( aggiungiOggetto, butlerInv, torta, cibo, null ) ),
+	assert( azione( notificaFrigo, rimuovi, torta, cibo, null ) ), 
+	assert( azione( aggiungiOggetto, butlerInv, crema, cibo, null  ) ),
+	assert( azione( notificaFrigo, rimuovi, crema, cibo, null ) ), 
 	assert( azione( movimento, table, null, null, null  ) ), 
-	assert( azione( spostaOggetto, robot, table, piatto, silverware ) ), 
-	assert( azione( spostaOggetto, robot, table, torta, cibo ) ), 
-	assert( azione( spostaOggetto, robot, table, crema, cibo ) ), 
+	assert( azione( spostaOggetto, butlerInv, tableInv, piatto, silverware ) ), 
+	assert( azione( spostaOggetto, butlerInv, tableInv, torta, cibo ) ), 
+	assert( azione( spostaOggetto, butlerInv, tableInv, crema, cibo ) ), 
 	assert( azione( movimento, home, null, null, null  ) ).
 	
 comando( addFood, NomeCibo) :-
-	assert( azione( notificaFrigo, conferma, NomeCibo, cibo, true ) ).	
+	assert( azione( notificaFrigo, conferma, NomeCibo, cibo, null ) ),
+	assert( azione( continuaPiano, successAddFood, NomeCibo, null, null ) ).
 
-comando( successAddFood, NomeCibo) :-
-	assert( azione( check, 1, 2, 3, 4 ) ),
+continua( successAddFood, NomeCibo) :-
 	assert( azione( movimento, fridge, null, null, null ) ),
-	assert( azione( aggiungiOggetto, robot, NomeCibo, cibo, null ) ),
-	assert( azione( notificaFrigo, rimuovi, NomeCibo, cibo, false ) ),
+	assert( azione( aggiungiOggetto, butlerInv, NomeCibo, cibo, null ) ),
+	assert( azione( notificaFrigo, rimuovi, NomeCibo, cibo, null ) ),
 	assert( azione( movimento, table, null, null, null ) ),
-	assert( azione( spostaOggetto, robot, table, NomeCibo, cibo ) ),
+	assert( azione( spostaOggetto, butlerInv, tableInv, NomeCibo, cibo ) ),
 	assert( azione( movimento, home, null, null, null ) ).
 	
 comando( clear, null ) :-
 	assert( azione( movimento, table , null, null, null) ),
-	spostaTutto( table, robot, _ ),
+	spostaTutto( tableInv, butlerInv, cibo ),
+	spostaTutto( tableInv, butlerInv, silverware ),
+	assert( azione( continuaPiano, clearContinue, null, null, null ) ).
+	
+continua( clearContinue, null ) :-
 	assert( azione( movimento, fridge , null, null, null) ),
-	msgFrigoTutto( aggiungi, robot, cibo ), 
-	rimuoviTutto( robot, cibo ),
+	msgFrigoTutto( aggiungi, butlerInv, cibo ), 
+	rimuoviTutto( butlerInv, cibo ),
 	assert( azione( movimento, dishwasher , null, null, null) ),
-	spostaTutto( robot, dishwasher, silverware ),
+	spostaTutto( butlerInv, dishwasherInv, silverware ),
 	assert( azione( movimento, home, null, null, null  ) ).
 
 %% Comandi Interni %%
@@ -73,10 +84,10 @@ spostaTutto( I1, I2, Categ ) :-
 
 spostaTutto_( [], I1, I2, Categ ).
 spostaTutto_( [( Nome, Categ )|T], I1, I2, Categ  ) :-
-	assert( azione( sposta, I1, I2, Nome, Categ ) ), !,
+	assert( azione( spostaOggetto, I1, I2, Nome, Categ ) ), !,
 	spostaTutto_( T, I1, I2, Categ ).
-spostaTutto_( [_|T], I1, I2, Categ  ) :-
-	spostaTutto_( T, I1, I2 ).
+spostaTutto_( [(A,B)|T], I1, I2, Categ  ) :-
+	spostaTutto_( T, I1, I2, Categ ).
 
 msgFrigoTutto( Azione, Inventario, Categ ) :-
 	inventario( Inventario, Lista ),
@@ -84,25 +95,44 @@ msgFrigoTutto( Azione, Inventario, Categ ) :-
 
 msgFrigoTutto_( [], Azione, Categ ).
 msgFrigoTutto_( [(Nome, Categ)|T], Azione, Categ ) :-
-	assert( azione( notificaFrigo, Azione, Nome, Categ, false ) ), !,
+	assert( azione( notificaFrigo, Azione, Nome, Categ, null ) ), !,
 	msgFrigoTutto_( T, Azione, Categ ).
 msgFrigoTutto_( [_|T], Azione, Categ ) :-
 	msgFrigoTutto_( T, Azione, Categ ).
 
 rimuoviTutto( Inventario, Categ ) :-
+	output( rimozione ),
+	output( Inventario ),
+	output( Categ ),	
 	inventario( Inventario, Lista ),
-	rimuoviTutto_( Lista, Categ ).
+	output( inventario( Inventario, Lista ) ),
+	%%rimuoviTuttoRic( a , b , c ),
+	output( ciao ),
+	rimuoviTuttoRic( Lista, Inventario, Categ ).
+	
+rimuoviTuttoRic( [], Inventario, Categ ) :-
+	output( done ).
+	
+rimuoviTuttoRic( [(Nome, Categ)|T], Inventario, Categ ) :-
+	output( match ),
+	output( Nome ),
+	output( Categ ),
+	output( Inventario ),
+	output( T ),
+	assert( azione( rimuoviOggetto, Inventario, Nome, Categ, null ) ), !,
+	rimuoviTuttoRic( T, Inventario, Categ ).
+	
+rimuoviTuttoRic( [_|T], Inventario, Categ ) :-
+	output( nomatch ),
+	output( Categ ),
+	output( Inventario ),
+	output( T ),
+	rimuoviTuttoRic( T, Inventario, Categ).
 
-rimuoviTutto_( [], Categ ).
-rimuoviTutto_( [(Nome, Categ)|T], Categ ) :-
-	assert( azione( rimuovi, Nome, Categ, null, null ) ), !,
-	rimuoviTutto _( T, Categ ).
-rimuoviTutto_( [_|T], Categ ) :-
-	rimuoviTutto _( T, Categ ).
-	
-	
-	
 
-		
 
 	
+
+	
+
+

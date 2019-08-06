@@ -21,9 +21,6 @@ class TestPositiveReply {
 	
 	@BeforeEach
 	fun systemSetUp() {
-  	 		GlobalScope.launch{ //activate an observer ...
- 				itunibo.coap.observer.main()		//blocking
- 			}	
   	 		GlobalScope.launch{
  			    println(" %%%%%%% TestButler starts fridge mind ")
 				it.unibo.ctxButler.main()
@@ -47,7 +44,7 @@ class TestPositiveReply {
 	fun queryFoodTest() {
 		println(" %%%%%%% TestButler  queryFoodTest with food present")
 		
-		solveCheckGoal(fridge_model_handler!!, "presenza( frigo, pasta, cibo )")
+		solveCheckGoal(fridge_model_handler!!, "presenza( frigoInv, pasta, cibo )")
 		sendCmdMessage(resource!!,"pasta",5000)
 		
 		solveCheckGoal(resource_fridge_handler!!,"done(actionMsgFridgeSync, conferma, pasta, cibo )")

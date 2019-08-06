@@ -38,7 +38,7 @@ class TestRemoveFood {
 	fun removeFoodTest() {
 		println(" %%%%%%% TestFridge  removeFoodTest ")
 		sendMessageToFridge(fridge_solver!!,"torta",1000)
-		solveCheckGoalFalse(fridge_model_handler!!,"presenza(frigo, torta, cibo)")
+		solveCheckGoalFalse(fridge_model_handler!!,"presenza(frigoInv, torta, cibo)")
  	}
 //----------------------------------------
 	

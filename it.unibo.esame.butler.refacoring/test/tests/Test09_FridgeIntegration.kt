@@ -13,7 +13,6 @@ import it.unibo.kactor.MsgUtil
 class TestModificaInventario {
 	var butler_solver: ActorBasic? = null
 	var butler_fridge_handler: ActorBasic? = null
-	var butler_state_handler: ActorBasic? = null
 	var fridge_cmd_solver: ActorBasic? = null
 	var fridge_model_handler: ActorBasic? = null
 	var frontend_dummy: ActorBasic? =null
@@ -27,7 +26,6 @@ class TestModificaInventario {
 		delay(10000)        //give the time to start
 		butler_solver = sysUtil.getActor("butler_solver")
 		butler_fridge_handler = sysUtil.getActor("butler_fridge_handler")
-		butler_state_handler = sysUtil.getActor("butler_state_handler")
 		fridge_cmd_solver = sysUtil.getActor("fridge_cmd_solver")
 		fridge_model_handler = sysUtil.getActor("fridge_model_handler")
 		frontend_dummy = sysUtil.getActor("frontend_dummy")
@@ -42,29 +40,30 @@ class TestModificaInventario {
 	@Test
 	fun addSolveCmd() {
 		println(" %%%%%%% TestButtler  solveCmdTest ")
-		sendCmdMessage(butler_solver!!, 30000)
+		sendCmdMessage(butler_solver!!, 10000)
 
 		//completeded all tasks
-		solveCheckGoal(butler_state_handler!!, "done( handleAdd, robot, piatto, silverware )")
-		solveCheckGoal(butler_state_handler!!, "done( handleSwap, robot, dishwasher, tazza, silverware )")
-		solveCheckGoal(butler_state_handler!!, "done( handleRemove, table, pizza, cibo )")
+		solveCheckGoal(butler_solver!!, "done( handleAdd, butlerInv, piatto, silverware )")
+		solveCheckGoal(butler_solver!!, "done( handleSwap, butlerInv, dishwasherInv, tazza, silverware )")
+		solveCheckGoal(butler_solver!!, "done( handleRemove, tableInv, pizza, cibo )")
 		
-		solveCheckGoal(butler_fridge_handler!!, "done( actionMsgFridgeAsync, aggiungi, budino, cibo )")
-		solveCheckGoal(butler_fridge_handler!!, "done( actionMsgFridgeAsync, rimuovi, torta, cibo )")
+		solveCheckGoal(butler_fridge_handler!!, "done( actionMsgFridgeSync, aggiungi, budino, cibo )")
+		solveCheckGoal(butler_fridge_handler!!, "done( actionMsgFridgeSync, rimuovi, torta, cibo )")
 
 		//presence or absence of objects
-		checkObj(butler_state_handler!!, true, "presenza( robot, piatto, silverware )")
-		checkObj(butler_state_handler!!, false, "presenza( robot, tazza, silverware )")
-		checkObj(butler_state_handler!!, true, "presenza( dishwasher, tazza, silverware )")
-		checkObj(butler_state_handler!!, false, "presenza( table, pizza, silverware )")
-		checkObj(fridge_model_handler!!, false, "presenza( frigo, torta, cibo )")
-		checkObj(fridge_model_handler!!, true, "presenza( frigo, budino, cibo )")
+		checkObj(butler_solver!!, true, "presenza( butlerInv, piatto, silverware )")
+		checkObj(butler_solver!!, false, "presenza( butlerInv, tazza, silverware )")
+		checkObj(butler_solver!!, true, "presenza( dishwasherInv, tazza, silverware )")
+		checkObj(butler_solver!!, false, "presenza( tableInv, pizza, silverware )")
+		checkObj(fridge_model_handler!!, false, "presenza( frigoInv, torta, cibo )")
+		checkObj(fridge_model_handler!!, true, "presenza( frigoInv, budino, cibo )")
 		
 		//messages received
 		solveCheckGoal(fridge_cmd_solver!!, "received( aggiungi, budino, cibo )")
 		solveCheckGoal(fridge_cmd_solver!!, "received( rimuovi, torta, cibo )")
 		solveCheckGoal(fridge_cmd_solver!!, "received( conferma, budino, cibo )")
 		solveCheckGoal(fridge_cmd_solver!!, "received( conferma, torta, cibo )")
+		solveCheckGoal(fridge_cmd_solver!!, "received( conferma, pasta, cibo )", "fail")
 		solveCheckGoal(frontend_dummy!!, "missingFood(torta)")
 		
 		
@@ -75,11 +74,11 @@ class TestModificaInventario {
 
 //----------------------------------------
 
-	fun solveCheckGoal(actor: ActorBasic, goal: String) {
+	fun solveCheckGoal(actor: ActorBasic, goal: String, expectedResult: String ="success") {
 		actor.solve("retract($goal)")
 		var result = actor.resVar
 		println(" %%%%%%%  actor={$actor.name} goal= $goal  result = $result")
-		assertTrue(result == "success", "%%%%%%% TestButtler expected 'success' found $result")
+		assertTrue(result == expectedResult, "%%%%%%% TestButtler expected '$expectedResult' found $result")
 	}
 
 	fun sendCmdMessage(actor: ActorBasic, time: Long) {

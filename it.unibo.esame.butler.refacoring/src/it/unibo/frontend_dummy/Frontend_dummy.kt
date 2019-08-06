@@ -25,8 +25,8 @@ class Frontend_dummy ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("waitEvent") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t031",targetState="persistMissingFood",cond=whenDispatch("missingFood"))
-					transition(edgeName="t032",targetState="persistModelContent",cond=whenDispatch("modelContent"))
+					 transition(edgeName="t029",targetState="persistMissingFood",cond=whenDispatch("missingFood"))
+					transition(edgeName="t030",targetState="persistModelContent",cond=whenDispatch("modelContent"))
 				}	 
 				state("persistMissingFood") { //this:State
 					action { //it:State
