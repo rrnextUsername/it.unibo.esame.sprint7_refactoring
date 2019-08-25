@@ -12,7 +12,6 @@ import it.unibo.kactor.MsgUtil
 
 class TestAddFood {
   var fridge_solver : ActorBasic? = null
-  var fridge_model_handler : ActorBasic? = null
 	
 	@BeforeEach
 	fun systemSetUp() {
@@ -21,12 +20,11 @@ class TestAddFood {
  			}	
   	 		GlobalScope.launch{
  			    println(" %%%%%%% TestFridge starts fridge mind ")
-				it.unibo.ctxFridge.main()
+				it.unibo.ctxButler.main()
  			}
 			delay(5000)		//give the time to start
-			fridge_solver = sysUtil.getActor("fridge_cmd_solver")	
-			fridge_model_handler = sysUtil.getActor("fridge_model_handler")	
-		    println(" %%%%%%% TestFridge getActors resource=${fridge_solver} fridge_model_handler=${fridge_model_handler}")
+			fridge_solver = sysUtil.getActor("fridge")	
+		    println(" %%%%%%% TestFridge getActors resource=${fridge_solver} fridge_model_handler=${fridge_solver}")
  	}
  
 	@AfterEach
@@ -38,7 +36,7 @@ class TestAddFood {
 	fun addFoodTest() {
 		println(" %%%%%%% TestFridge  addFoodTest ")
 		sendMessageToFridge(fridge_solver!!,"panzerotto",3000)
-		solveCheckGoal(fridge_model_handler!!,"presenza(frigoInv, panzerotto, cibo)")
+		solveCheckGoal(fridge_solver!!,"presenza(frigoInv, panzerotto, cibo)")
  	}
 //----------------------------------------
 	

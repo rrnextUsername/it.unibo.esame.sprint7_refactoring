@@ -41,7 +41,7 @@ class TestOrder {
 	@Test
 	fun orderTest() {
 		println(" %%%%%%% TestPathfinder  test destinazione ")
-		sendCmdMessage(butler_solver!!,30000)
+		sendCmdMessage(butler_solver!!,40000)
 		solveCheckGoal(pathfinder!!,"curPos(0,0)")
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","location1")
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","location2")

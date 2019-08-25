@@ -24,7 +24,7 @@ class TestPrepareCmd {
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("butler_solver")	
 			butler_pathfinder_handler = sysUtil.getActor("butler_pathfinder_handler")	
-			fridge_model_handler = sysUtil.getActor("fridge_model_handler")	
+			fridge_model_handler = sysUtil.getActor("fridge")	
 		    println(" %%%%%%% TestButtler getActors resource=${resource}")
  	}
  
@@ -37,46 +37,46 @@ class TestPrepareCmd {
 	fun addSolveCmd() {
 		println(" %%%%%%% TestButtler  solveCmdTest ")
 		
-		sendCmdMessage(resource!!,30000)
+		sendCmdMessage(resource!!,60000)
 		
 		//completeded all tasks
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","pantry")
 		
-		solveCheckGoal(resource!!,"done( handleSwap, pantry, robot, piatto, silverware )")
+		solveCheckGoal(resource!!,"done( handleSwap, pantryInv, butlerInv, piatto, silverware )")
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","fridge")
 		
-		solveCheckGoal(resource!!,"done( handleAdd, robot, torta, cibo )")
+		solveCheckGoal(resource!!,"done( handleAdd, butlerInv, torta, cibo )")
 		solveCheckGoal(fridge_model_handler!!,"done( handleRemove, torta, cibo )")
 		
-		solveCheckGoal(resource!!,"done( handleAdd, robot, crema, cibo )")
+		solveCheckGoal(resource!!,"done( handleAdd, butlerInv, crema, cibo )")
 		solveCheckGoal(fridge_model_handler!!,"done( handleRemove, crema, cibo )")
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","table")
 		
-		solveCheckGoal(resource!!,"done( handleSwap, robot, table, piatto, silverware )")
+		solveCheckGoal(resource!!,"done( handleSwap, butlerInv, tableInv, piatto, silverware )")
 		
-		solveCheckGoal(resource!!,"done( handleSwap, robot, table, torta, cibo )")
+		solveCheckGoal(resource!!,"done( handleSwap, butlerInv, tableInv, torta, cibo )")
 		
-		solveCheckGoal(resource!!,"done( handleSwap, robot, table, crema, cibo )")
+		solveCheckGoal(resource!!,"done( handleSwap, butlerInv, tableInv, crema, cibo )")
 		
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","home")
 		
 		
 		//final state consistent		
-		solveCheckGoal(resource!!,"presenza( table, piatto, silverware )")
-		solveCheckGoal(resource!!,"presenza( table, torta, cibo )")
-		solveCheckGoal(resource!!,"presenza( table, crema, cibo )")
+		solveCheckGoal(resource!!,"presenza( tableInv, piatto, silverware )")
+		solveCheckGoal(resource!!,"presenza( tableInv, torta, cibo )")
+		solveCheckGoal(resource!!,"presenza( tableInv, crema, cibo )")
 		
 		
-		solveCheckGoal(resource!!,"presenza( robot, piatto, silverware )","fail")
-		solveCheckGoal(resource!!,"presenza( robot, torta, cibo )","fail")
-		solveCheckGoal(resource!!,"presenza( robot, crema, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( butlerInv, piatto, silverware )","fail")
+		solveCheckGoal(resource!!,"presenza( butlerInv, torta, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( butlerInv, crema, cibo )","fail")
 		
 		
-		solveCheckGoal(resource!!,"presenza( pantry, piatto, silverware )","fail")
-		solveCheckGoal(fridge_model_handler!!,"presenza( frigo, torta, cibo )","fail")
-		solveCheckGoal(fridge_model_handler!!,"presenza( frigo, crema, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( pantryInv, piatto, silverware )","fail")
+		solveCheckGoal(fridge_model_handler!!,"presenza( frigoInv, torta, cibo )","fail")
+		solveCheckGoal(fridge_model_handler!!,"presenza( frigoInv, crema, cibo )","fail")
 		
 		//returned to waitCmd
 		solveCheckGoal(resource!!,"stato( waitCmd, _ , _ )")

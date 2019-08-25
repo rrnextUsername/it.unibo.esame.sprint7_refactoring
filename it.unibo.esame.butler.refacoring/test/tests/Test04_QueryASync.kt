@@ -27,7 +27,7 @@ class TestQueryASync {
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("butler_solver")	
 			resource_fridge_handler = sysUtil.getActor("butler_fridge_handler")	
-			resource_fridge = sysUtil.getActor("fridge_cmd_solver")	
+			resource_fridge = sysUtil.getActor("fridge")	
 		    println(" %%%%%%% TestFridge getActors resource=${resource} resource_fridge_handler=${resource_fridge_handler} resource_fridge=${resource_fridge}")
  	}
  

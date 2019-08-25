@@ -21,10 +21,10 @@ class TestExposeFood {
  			}	
   	 		GlobalScope.launch{
  			    println(" %%%%%%% TestFridge starts fridge mind ")
-				it.unibo.ctxFridge.main()
+				it.unibo.ctxButler.main()
  			}
 			delay(5000)		//give the time to start
-			resource = sysUtil.getActor("fridge_cmd_solver")	
+			resource = sysUtil.getActor("fridge")	
 			frontEndDummy = sysUtil.getActor("frontend_dummy")	
 		    println(" %%%%%%% TestFridge getActors resource=${resource}")
  	}
@@ -35,7 +35,7 @@ class TestExposeFood {
 	}
  
 	@Test
-	fun addFoodTest() {
+	fun exposeFoodTest() {
 		println(" %%%%%%% TestFridge  exposeFoodTest ")
 		sendExposeFridge(resource!!,1000)
 		

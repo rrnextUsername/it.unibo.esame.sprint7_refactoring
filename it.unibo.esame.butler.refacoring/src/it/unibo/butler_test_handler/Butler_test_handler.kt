@@ -25,34 +25,32 @@ class Butler_test_handler ( name: String, scope: CoroutineScope ) : ActorBasicFs
 				state("waitAction") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t013",targetState="handleCheck",cond=whenDispatch("check"))
-					transition(edgeName="t014",targetState="handleWait",cond=whenDispatch("wait"))
+					 transition(edgeName="t020",targetState="testPipeline",cond=whenEvent("action"))
 				}	 
-				state("handleCheck") { //this:State
+				state("testPipeline") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("check(NUMBER)"), Term.createTerm("check(NUMBER)"), 
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(check,NUMBER,_,_,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("assert(done(check,${payloadArg(0)}))","") //set resVar	
+								solve("assert(done(check,${payloadArg(1)}))","") //set resVar	
+								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
+						}
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("action", "action(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"butler_test_handler" ) 
 						}
 					}
-					 transition( edgeName="goto",targetState="alertSolver", cond=doswitch() )
+					 transition(edgeName="t021",targetState="handleTest",cond=whenDispatch("action"))
 				}	 
-				state("handleWait") { //this:State
+				state("handleTest") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("wait(TIME)"), Term.createTerm("wait(TIME)"), 
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(wait,TIME,_,_,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("assert(done(wait,${payloadArg(0)}))","") //set resVar	
+								solve("assert(done(wait,${payloadArg(1)}))","") //set resVar	
+								delay(payloadArg(1).toLong()*2000)
+								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
 						}
-						stateTimer = TimerActor("timer_handleWait", 
-							scope, context!!, "local_tout_butler_test_handler_handleWait", 2000.toLong() )
-					}
-					 transition(edgeName="t015",targetState="alertSolver",cond=whenTimeout("local_tout_butler_test_handler_handleWait"))   
-				}	 
-				state("alertSolver") { //this:State
-					action { //it:State
-						forward("actionComplete", "actionComplete" ,"butler_solver" ) 
 					}
 					 transition( edgeName="goto",targetState="waitAction", cond=doswitch() )
 				}	 

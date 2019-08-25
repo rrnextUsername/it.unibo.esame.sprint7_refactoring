@@ -17,7 +17,6 @@ class TestNegativeReply {
 	var resource_test_handler: ActorBasic? = null
 	var resource_fridge_dummy: ActorBasic? = null
 	var resource_front_end_dummy: ActorBasic? = null
-	var fridge_model_handler: ActorBasic? = null
 
 	@BeforeEach
 	fun systemSetUp() {
@@ -33,9 +32,8 @@ class TestNegativeReply {
 		resource = sysUtil.getActor("butler_solver")
 		resource_fridge_handler = sysUtil.getActor("butler_fridge_handler")
 		resource_test_handler = sysUtil.getActor("butler_test_handler")
-		resource_fridge_dummy = sysUtil.getActor("fridge_cmd_solver")
+		resource_fridge_dummy = sysUtil.getActor("fridge")
 		resource_front_end_dummy = sysUtil.getActor("frontend_dummy")
-		fridge_model_handler = sysUtil.getActor("fridge_model_handler") 
 		println(" %%%%%%% TestButler getActors resource=${resource} resource_fridge_handler=${resource_fridge_handler} resource_fridge_dummy=${resource_fridge_dummy} resource_front_end_dummy=${resource_front_end_dummy} resource_test_handler=${resource_test_handler}")
 	}
 
@@ -47,7 +45,7 @@ class TestNegativeReply {
 	@Test
 	fun queryFoodTest() {
 		println(" %%%%%%% TestButler  queryFoodTest with food absent")
-		solveCheckGoalFalse(fridge_model_handler!!, "presenza( frigoInv, panzerotto, cibo )")
+		solveCheckGoalFalse(resource_fridge_dummy!!, "presenza( frigoInv, panzerotto, cibo )")
 		
 		sendCmdMessage(resource!!, "panzerotto", 5000)
 		

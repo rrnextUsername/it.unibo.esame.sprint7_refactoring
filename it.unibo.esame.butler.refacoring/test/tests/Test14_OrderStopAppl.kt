@@ -46,7 +46,7 @@ class TestOrderStopAppl {
 		sendCmdMessage(butler_solver!!,3000)
 		emitEvent(frontend_dummy!!,"stopAppl",2000)
 		emitEvent(frontend_dummy!!,"reactivateAppl",2000)
-		delay(20000)
+		delay(30000)
 		solveCheckGoal(pathfinder!!,"done(stop)")
 		solveCheckGoal(pathfinder!!,"done(restart)")
 		solveCheckGoal(pathfinder!!,"curPos(0,0)")

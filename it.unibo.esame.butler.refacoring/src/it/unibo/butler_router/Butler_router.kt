@@ -25,43 +25,12 @@ class Butler_router ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t016",targetState="solveAction",cond=whenDispatch("action"))
+					 transition(edgeName="t012",targetState="solveAction",cond=whenDispatch("local_action"))
 				}	 
 				state("solveAction") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(check,NUMBER,_,_,_)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("check", "check(${payloadArg(1)})" ,"butler_test_handler" ) 
-						}
-						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(wait,TIME,_,_,_)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("wait", "wait(${payloadArg(1)})" ,"butler_test_handler" ) 
-						}
-						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(aggiungiOggetto,INVENTARIO,NOME,CATEGORIA,_)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("handleAdd", "handleAdd(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"butler_solver" ) 
-						}
-						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(rimuoviOggetto,INVENTARIO,NOME,CATEGORIA,_)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("handleRemove", "handleRemove(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"butler_solver" ) 
-						}
-						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(spostaOggetto,INVENTARIO1,INVENTARIO2,NOME,CATEGORIA)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("handleSwap", "handleSwap(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"butler_solver" ) 
-						}
-						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(notificaFrigo,AZIONE,NOME,CATEGORIA,_)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("handleMsgFridge", "handleMsgFridge(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"butler_fridge_handler" ) 
-						}
-						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(movimento,DESTINATION,_,_,_)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("handleMovement", "handleMovement(${payloadArg(1)})" ,"butler_pathfinder_handler" ) 
-						}
-						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(continuaPiano,CMD,ARG,_,_)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("actionContinue", "actionContinue(${payloadArg(1)},${payloadArg(2)})" ,"butler_solver" ) 
-						}
+						forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

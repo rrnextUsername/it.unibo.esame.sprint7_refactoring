@@ -19,6 +19,9 @@ class Fridge_cmd_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm(
 				state("s0") { //this:State
 					action { //it:State
 						solve("consult('sysRules.pl')","") //set resVar	
+						solve("consult('fridgeModel.pl')","") //set resVar	
+						solve("consult('dataFunctions.pl')","") //set resVar	
+						solve("showResourceModel","") //set resVar	
 						emit("exposeFood", "exposeFood" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -26,52 +29,110 @@ class Fridge_cmd_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm(
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t031",targetState="examineCmd",cond=whenEvent("msgFridge"))
-					transition(edgeName="t032",targetState="examineCmd",cond=whenEvent("exposeFood"))
+					 transition(edgeName="t038",targetState="fridgePipeline",cond=whenEvent("msgFridge"))
+					transition(edgeName="t039",targetState="exposePipeline",cond=whenEvent("exposeFood"))
 				}	 
-				state("examineCmd") { //this:State
+				state("fridgePipeline") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEG)"), Term.createTerm("msgFridge(aggiungi,NAME,CATEGORY)"), 
+						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								storeCurrentMessageForReply()
+								println("$name in ${currentState.stateName} | $currentMsg")
+								forward("msgFridge", "msgFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"fridge_cmd_solver" ) 
+						}
+					}
+					 transition(edgeName="t040",targetState="handleAdd",cond=whenDispatch("msgFridge"))
+				}	 
+				state("handleAdd") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(aggiungi,NAME,CATEGORY)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								storeCurrentMessageForReply()
 								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
-								forward("fridge_handleAdd", "fridge_handleAdd(${payloadArg(1)},${payloadArg(2)})" ,"fridge_model_handler" ) 
+								solve("aggiungi(frigoInv,${payloadArg(1)},${payloadArg(2)})","") //set resVar	
+								solve("assert(done(handleAdd,${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
+								solve("showResourceModel","") //set resVar	
+								solve("inventario(frigoInv,L)","") //set resVar	
+								val Inventario = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
+								replyToCaller("replyFridge", "replyFridge(null)")
 						}
-						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEG)"), Term.createTerm("msgFridge(rimuovi,NAME,CATEGORY)"), 
+						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("msgFridge", "msgFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"fridge_cmd_solver" ) 
+						}
+					}
+					 transition(edgeName="t041",targetState="handleRemove",cond=whenDispatch("msgFridge"))
+				}	 
+				state("handleRemove") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(rimuovi,NAME,CATEGORY)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								storeCurrentMessageForReply()
 								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
-								forward("fridge_handleRemove", "fridge_handleRemove(${payloadArg(1)},${payloadArg(2)})" ,"fridge_model_handler" ) 
+								solve("rimuovi(frigoInv,${payloadArg(1)},${payloadArg(2)})","") //set resVar	
+								solve("assert(done(handleRemove,${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
+								solve("showResourceModel","") //set resVar	
+								solve("inventario(frigoInv,L)","") //set resVar	
+								val Inventario = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
+								replyToCaller("replyFridge", "replyFridge(null)")
 						}
-						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEG)"), Term.createTerm("msgFridge(conferma,NAME,CATEGORY)"), 
+						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("msgFridge", "msgFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"fridge_cmd_solver" ) 
+						}
+					}
+					 transition(edgeName="t042",targetState="handleQuery",cond=whenDispatch("msgFridge"))
+				}	 
+				state("handleQuery") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(conferma,NAME,CATEGORY)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								storeCurrentMessageForReply()
 								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
-								forward("fridge_handleQuery", "fridge_handleQuery(${payloadArg(1)},${payloadArg(2)})" ,"fridge_model_handler" ) 
+								solve("assert(done(handleQuery,${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
+								solve("presenza(frigoInv,${payloadArg(1)},${payloadArg(2)})","") //set resVar	
+								if(currentSolution.isSuccess()) { replyToCaller("replyFridge", "replyFridge(present)")
+								 }
+								else
+								{ replyToCaller("replyFridge", "replyFridge(absent)")
+								 }
 						}
+						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("msgFridge", "msgFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"fridge_cmd_solver" ) 
+						}
+					}
+					 transition(edgeName="t043",targetState="handleTest",cond=whenDispatch("msgFridge"))
+				}	 
+				state("handleTest") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(conferma,NAME,CATEGORY)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
+								replyToCaller("replyFridge", "replyFridge(null})")
+						}
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("exposePipeline") { //this:State
+					action { //it:State
+						forward("exposeFood", "exposeFood" ,"fridge_cmd_solver" ) 
+					}
+					 transition(edgeName="t044",targetState="exposeFood",cond=whenDispatch("exposeFood"))
+				}	 
+				state("exposeFood") { //this:State
+					action { //it:State
 						if( checkMsgContent( Term.createTerm("exposeFood"), Term.createTerm("exposeFood"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("assert(received(exposeFood))","") //set resVar	
-								forward("fridge_handleExposeFood", "fridge_handleExposeFood" ,"fridge_model_handler" ) 
-						}
-						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEG)"), Term.createTerm("msgFridge(null,null,null)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
-						}
-					}
-					 transition(edgeName="t033",targetState="replyThenWaitCmd",cond=whenDispatch("fridge_done"))
-				}	 
-				state("replyThenWaitCmd") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("fridge_done(STATUS)"), Term.createTerm("fridge_done(STATUS)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
-								replyToCaller("replyFridge", "replyFridge(${payloadArg(0)})")
+								solve("inventario(frigoInv,INVENTORY)","") //set resVar	
+								solve("inventario(frigoInv,L)","") //set resVar	
+								val Inventario = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
+								emit("modelContent", "modelContent(frigo(Inventario))" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

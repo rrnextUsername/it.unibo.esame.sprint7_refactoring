@@ -42,7 +42,7 @@ class TestDestinationReachedSuddenObstacle {
 	@Test
 	fun destinationReachedTest() {
 		println(" %%%%%%% TestPathfinder  test destinazione ")
-		sendCmdMessage(butler_solver!!,5000)
+		sendCmdMessage(butler_solver!!,9000)
 		solveCheckGoal(pathfinder!!,"curPos(3,0)")
 		solveCheckGoal(obstacle!!,"done( obstacle, 3, 0)")
 		delay(5000)

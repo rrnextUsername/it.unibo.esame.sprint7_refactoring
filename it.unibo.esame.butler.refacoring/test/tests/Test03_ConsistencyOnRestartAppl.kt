@@ -34,16 +34,16 @@ class TestConsistencyOnRestartAppl {
 	@Test
 	fun startInWaitTest() {
 		println(" %%%%%%% TestButtler  consistencyOnRestartApplTest ")
-		sendCmdMessage(resource!!,1000)
+		sendCmdMessage(resource!!,10)
 		
 		//test stop
-		sendStopApplMessage(resource!!,2000)
+		sendStopApplMessage(resource!!,4000)
 		solveCheckGoal(resource!!,"stato( stoppedSolvedAction, _ , _ )")
 		
 		//test restart
-		sendRestartApplMessage(resource!!,1000)
+		sendRestartApplMessage(resource!!,3000)
 		solveCheckGoal(resource!!,"done( restartSolvedAction)")
-		delay(5000)
+		delay(10000)
 		
 		//test all done in order
 		solveCheckGoalOrder(resource_test!!,"done( check, NUMBER )","1")

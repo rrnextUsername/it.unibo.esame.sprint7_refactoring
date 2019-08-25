@@ -25,7 +25,7 @@ class TestAddFoodCmdAbsent {
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("butler_solver")	
 			butler_pathfinder_handler = sysUtil.getActor("butler_pathfinder_handler")	
-			fridge_model_handler = sysUtil.getActor("fridge_model_handler")		
+			fridge_model_handler = sysUtil.getActor("fridge")		
 			frontend_dummy = sysUtil.getActor("frontend_dummy")	
 		    println(" %%%%%%% TestButtler getActors resource=${resource}")
  	}
@@ -46,13 +46,12 @@ class TestAddFoodCmdAbsent {
 		
 		
 		//final state consistent		
-		solveCheckGoal(resource!!,"presenza( table, bomboloni, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( tableInv, bomboloni, cibo )","fail")
 		
-		solveCheckGoal(resource!!,"presenza( robot, bomboloni, cibo )","fail")
+		solveCheckGoal(resource!!,"presenza( butlerInv, bomboloni, cibo )","fail")
 		
-		solveCheckGoal(fridge_model_handler!!,"presenza( frigo, bomboloni, cibo )","fail")
+		solveCheckGoal(fridge_model_handler!!,"presenza( frigoInv, bomboloni, cibo )","fail")
 				
-		//solveCheckGoal(frontend_dummy!!,"content( missingFood( state ( bomboloni ) ) )")
 		solveCheckGoal(frontend_dummy!!,"missingFood")
 		
 		//returned to waitCmd

@@ -25,7 +25,7 @@ class TestAddFoodPresentCmd {
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("butler_solver")	
 			butler_pathfinder_handler = sysUtil.getActor("butler_pathfinder_handler")	
-			fridge_model_handler = sysUtil.getActor("fridge_model_handler")		
+			fridge_model_handler = sysUtil.getActor("fridge")		
 			frontend_dummy = sysUtil.getActor("frontend_dummy")	
 		    println(" %%%%%%% TestButtler getActors resource=${resource}")
  	}
@@ -39,7 +39,7 @@ class TestAddFoodPresentCmd {
 	fun addSolveCmdPresent() {
 		println(" %%%%%%% TestButtler  solveCmdTest Present")
 		
-		sendCmdMessage(resource!!,30000)
+		sendCmdMessage(resource!!,40000)
 		
 		//completeded all tasks
 		solveCheckGoal(fridge_model_handler!!,"done( handleQuery, panuozzi, cibo )")

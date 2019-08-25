@@ -29,10 +29,10 @@ class Fridge_model_handler ( name: String, scope: CoroutineScope ) : ActorBasicF
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t034",targetState="handleAdd",cond=whenDispatch("fridge_handleAdd"))
-					transition(edgeName="t035",targetState="handleRemove",cond=whenDispatch("fridge_handleRemove"))
-					transition(edgeName="t036",targetState="handleQuery",cond=whenDispatch("fridge_handleQuery"))
-					transition(edgeName="t037",targetState="handleExposeFood",cond=whenDispatch("fridge_handleExposeFood"))
+					 transition(edgeName="t039",targetState="handleAdd",cond=whenDispatch("fridge_handleAdd"))
+					transition(edgeName="t040",targetState="handleRemove",cond=whenDispatch("fridge_handleRemove"))
+					transition(edgeName="t041",targetState="handleQuery",cond=whenDispatch("fridge_handleQuery"))
+					transition(edgeName="t042",targetState="handleExposeFood",cond=whenDispatch("fridge_handleExposeFood"))
 				}	 
 				state("handleAdd") { //this:State
 					action { //it:State

@@ -14,7 +14,6 @@ class TestModificaInventario {
 	var butler_solver: ActorBasic? = null
 	var butler_fridge_handler: ActorBasic? = null
 	var fridge_cmd_solver: ActorBasic? = null
-	var fridge_model_handler: ActorBasic? = null
 	var frontend_dummy: ActorBasic? =null
 
 	@BeforeEach
@@ -26,8 +25,7 @@ class TestModificaInventario {
 		delay(10000)        //give the time to start
 		butler_solver = sysUtil.getActor("butler_solver")
 		butler_fridge_handler = sysUtil.getActor("butler_fridge_handler")
-		fridge_cmd_solver = sysUtil.getActor("fridge_cmd_solver")
-		fridge_model_handler = sysUtil.getActor("fridge_model_handler")
+		fridge_cmd_solver = sysUtil.getActor("fridge")
 		frontend_dummy = sysUtil.getActor("frontend_dummy")
 		println(" %%%%%%% TestButtler getActors butler_solver=${butler_solver}, fridge_cmd_solver=${fridge_cmd_solver}")
 	}
@@ -55,8 +53,8 @@ class TestModificaInventario {
 		checkObj(butler_solver!!, false, "presenza( butlerInv, tazza, silverware )")
 		checkObj(butler_solver!!, true, "presenza( dishwasherInv, tazza, silverware )")
 		checkObj(butler_solver!!, false, "presenza( tableInv, pizza, silverware )")
-		checkObj(fridge_model_handler!!, false, "presenza( frigoInv, torta, cibo )")
-		checkObj(fridge_model_handler!!, true, "presenza( frigoInv, budino, cibo )")
+		checkObj(fridge_cmd_solver!!, false, "presenza( frigoInv, torta, cibo )")
+		checkObj(fridge_cmd_solver!!, true, "presenza( frigoInv, budino, cibo )")
 		
 		//messages received
 		solveCheckGoal(fridge_cmd_solver!!, "received( aggiungi, budino, cibo )")
@@ -64,7 +62,7 @@ class TestModificaInventario {
 		solveCheckGoal(fridge_cmd_solver!!, "received( conferma, budino, cibo )")
 		solveCheckGoal(fridge_cmd_solver!!, "received( conferma, torta, cibo )")
 		solveCheckGoal(fridge_cmd_solver!!, "received( conferma, pasta, cibo )", "fail")
-		solveCheckGoal(frontend_dummy!!, "missingFood(torta)")
+		solveCheckGoal(frontend_dummy!!, "missingFood")
 		
 		
 

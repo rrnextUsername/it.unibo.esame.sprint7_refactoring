@@ -21,24 +21,35 @@ class Butler_pathfinder_handler ( name: String, scope: CoroutineScope ) : ActorB
 						solve("consult('sysRules.pl')","") //set resVar	
 						solve("consult('locationIndex.pl')","") //set resVar	
 					}
-					 transition( edgeName="goto",targetState="waitAction", cond=doswitch() )
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
-				state("waitAction") { //this:State
+				state("wait") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t09",targetState="handleMovement",cond=whenDispatch("handleMovement"))
+					 transition(edgeName="t011",targetState="actionPipeline",cond=whenDispatch("action"))
+					transition(edgeName="t012",targetState="assertMove",cond=whenDispatch("goalReached"))
+				}	 
+				state("actionPipeline") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								forward("action", "action(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"butler_pathfinder_handler" ) 
+						}
+					}
+					 transition(edgeName="t013",targetState="handleMovement",cond=whenDispatch("action"))
 				}	 
 				state("handleMovement") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("handleMovement(DESTINATION)"), Term.createTerm("handleMovement(DESTINATION)"), 
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(movimento,DESTINATION,_,_,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("location(${payloadArg(0)},X,Y)","") //set resVar	
+								solve("location(${payloadArg(1)},X,Y)","") //set resVar	
 								forward("setGoal", "setGoal(${getCurSol("X").toString()},${getCurSol("Y").toString()})" ,"pathfinder" ) 
-								solve("assert(movingTo(${payloadArg(0)}))","") //set resVar	
+								solve("assert(movingTo(${payloadArg(1)}))","") //set resVar	
 						}
 					}
-					 transition(edgeName="t010",targetState="assertMove",cond=whenDispatch("goalReached"))
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
 				state("assertMove") { //this:State
 					action { //it:State
@@ -47,7 +58,7 @@ class Butler_pathfinder_handler ( name: String, scope: CoroutineScope ) : ActorB
 						solve("assert(done(movimento,$Dest))","") //set resVar	
 						forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
 					}
-					 transition( edgeName="goto",targetState="waitAction", cond=doswitch() )
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
 			}
 		}

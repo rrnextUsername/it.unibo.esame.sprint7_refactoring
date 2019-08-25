@@ -58,7 +58,7 @@ lateinit var resourcecoap : modelResourceCoap
 	}
 	
 	fun updateRoomModel( actor: ActorBasic, inventory:String, content: String ){
-		println("			resourceModelSupport updateRoomModel content=$content")
+		println("			resourceModelSupport updateRoomModel inventory=$inventory content=$content")
 			actor.scope.launch{
 				actor.emit( "modelContent" , "content( $inventory( state( $content )))" )
  				//resourcecoap.updateState( "$inventory( '$content' )" )

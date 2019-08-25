@@ -33,7 +33,7 @@ class TestStopOnStopAppl {
 	fun startInWaitTest() {
 		println(" %%%%%%% TestButtler  stopOnStopApplTest ")
 		
-		sendCmdMessage(resource!!,1000)
+		sendCmdMessage(resource!!,0)
 		sendStopApplMessage(resource!!,2000)
 		
 		solveCheckGoal(resource!!,"stato( stoppedSolvedAction, _ , _ )")

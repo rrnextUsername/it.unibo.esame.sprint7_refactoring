@@ -24,7 +24,7 @@ class TestClearCmd {
 			delay(5000)		//give the time to start
 			resource = sysUtil.getActor("butler_solver")	
 			butler_pathfinder_handler = sysUtil.getActor("butler_pathfinder_handler")	
-			fridge_model_handler = sysUtil.getActor("fridge_model_handler")	
+			fridge_model_handler = sysUtil.getActor("fridge")	
 		    println(" %%%%%%% TestButtler getActors resource=${resource}")
  	}
  
@@ -37,7 +37,7 @@ class TestClearCmd {
 	fun addSolveCmd() {
 		println(" %%%%%%% TestButtler  solveCmdTest ")
 		
-		sendCmdMessage(resource!!,30000)
+		sendCmdMessage(resource!!,60000)
 		
 		//completeded all tasks
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","table")

@@ -20,48 +20,89 @@ class Butler_fridge_handler ( name: String, scope: CoroutineScope ) : ActorBasic
 					action { //it:State
 						solve("consult('sysRules.pl')","") //set resVar	
 					}
-					 transition( edgeName="goto",targetState="waitAction", cond=doswitch() )
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
-				state("waitAction") { //this:State
+				state("wait") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t011",targetState="handleMsgFridge",cond=whenDispatch("handleMsgFridge"))
+					 transition(edgeName="t014",targetState="actionPipeline",cond=whenDispatch("action"))
+					transition(edgeName="t015",targetState="replyPipeline",cond=whenDispatch("replyFridge"))
+				}	 
+				state("actionPipeline") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								forward("action", "action(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"butler_fridge_handler" ) 
+						}
+					}
+					 transition(edgeName="t016",targetState="handleMsgFridge",cond=whenDispatch("action"))
 				}	 
 				state("handleMsgFridge") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("handleMsgFridge(ACTION,NAME,CATEG)"), Term.createTerm("handleMsgFridge(ACTION,NAME,CATEG)"), 
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(notificaFrigo,AZIONE,NOME,CATEGORIA,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("retract(currentFood(_))","") //set resVar	
-								solve("assert(currentFood(${payloadArg(1)}))","") //set resVar	
-								forward("msgFridge", "msgFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"fridge_cmd_solver" ) 
-								solve("assert(done(actionMsgFridgeSync,${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
+								solve("assert(currentFood(${payloadArg(2)}))","") //set resVar	
+								forward("msgFridge", "msgFridge(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"fridge" ) 
+								solve("assert(done(actionMsgFridgeSync,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
 						}
 					}
-					 transition(edgeName="t012",targetState="handleReply",cond=whenDispatch("replyFridge"))
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
-				state("handleReply") { //this:State
+				state("replyPipeline") { //this:State
 					action { //it:State
-						solve("currentFood(CIBO)","") //set resVar	
-						if( checkMsgContent( Term.createTerm("replyFridge(STATUS)"), Term.createTerm("replyFridge(null)"), 
+						if( checkMsgContent( Term.createTerm("replyFridge(STATUS)"), Term.createTerm("replyFridge(_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
+								forward("replyFridge", "replyFridge(${payloadArg(0)})" ,"butler_fridge_handler" ) 
 								println("$name in ${currentState.stateName} | $currentMsg")
 						}
+					}
+					 transition(edgeName="t017",targetState="handleReplyPresent",cond=whenDispatch("replyFridge"))
+				}	 
+				state("handleReplyPresent") { //this:State
+					action { //it:State
 						if( checkMsgContent( Term.createTerm("replyFridge(STATUS)"), Term.createTerm("replyFridge(present)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
 								println("$name in ${currentState.stateName} | $currentMsg")
 						}
+						if( checkMsgContent( Term.createTerm("replyFridge(STATUS)"), Term.createTerm("replyFridge(_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("replyFridge", "replyFridge(${payloadArg(0)})" ,"butler_fridge_handler" ) 
+								println("$name in ${currentState.stateName} | $currentMsg")
+						}
+					}
+					 transition(edgeName="t018",targetState="handleReplyNull",cond=whenDispatch("replyFridge"))
+				}	 
+				state("handleReplyNull") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("replyFridge(STATUS)"), Term.createTerm("replyFridge(null)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
+								println("$name in ${currentState.stateName} | $currentMsg")
+						}
+						if( checkMsgContent( Term.createTerm("replyFridge(STATUS)"), Term.createTerm("replyFridge(_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("replyFridge", "replyFridge(${payloadArg(0)})" ,"butler_fridge_handler" ) 
+								println("$name in ${currentState.stateName} | $currentMsg")
+						}
+					}
+					 transition(edgeName="t019",targetState="handleReplyAbsent",cond=whenDispatch("replyFridge"))
+				}	 
+				state("handleReplyAbsent") { //this:State
+					action { //it:State
 						if( checkMsgContent( Term.createTerm("replyFridge(STATUS)"), Term.createTerm("replyFridge(absent)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
+								solve("currentFood(CIBO)","") //set resVar	
 								val Cibo= getCurSol("CIBO").toString()
 								itunibo.robot.resourceModelSupport.updateMissingFoodModel(myself ,Cibo )
 								forward("actionComplete", "actionComplete(fail)" ,"butler_solver" ) 
 						}
 					}
-					 transition( edgeName="goto",targetState="waitAction", cond=doswitch() )
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
 			}
 		}

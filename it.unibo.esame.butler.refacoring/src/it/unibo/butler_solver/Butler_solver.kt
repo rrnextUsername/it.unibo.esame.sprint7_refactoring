@@ -15,6 +15,7 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		var messageRecognized: Boolean= false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -23,19 +24,18 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						solve("consult('cmds.pl')","") //set resVar	
 						solve("consult('solverModel.pl')","") //set resVar	
 						solve("consult('dataFunctions.pl')","") //set resVar	
-						solve("showRoomState","") //set resVar	
-						solve("inventario(butlerInv,L)","") //set resVar	
-						var Inventario = getCurSol("L").toString()
-						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"butlerInv", Inventario )
 						solve("inventario(tableInv,L)","") //set resVar	
-						Inventario = getCurSol("L").toString()
-						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"tableInv", Inventario )
-						solve("inventario(dishwasherInv,L)","") //set resVar	
-						Inventario = getCurSol("L").toString()
-						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"dishwasherInv", Inventario )
+						var TableInv = getCurSol("L").toString()
+						solve("inventario(butlerInv,L)","") //set resVar	
+						var ButlerInv = getCurSol("L").toString()
 						solve("inventario(pantryInv,L)","") //set resVar	
-						Inventario = getCurSol("L").toString()
-						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"pantryInv", Inventario )
+						var PantryInv = getCurSol("L").toString()
+						solve("inventario(dishwasherInv,L)","") //set resVar	
+						var DishwasherInv = getCurSol("L").toString()
+						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"tableInv", TableInv )
+						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"butlerInv", ButlerInv )
+						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"pantryInv", PantryInv )
+						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"dishwasherInv", DishwasherInv )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -62,7 +62,7 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						solve("showSolverState","") //set resVar	
 						solve("retract(azione(ARG0,ARG1,ARG2,ARG3,ARG4))","") //set resVar	
 						println(currentSolution)
-						if(currentSolution.isSuccess()){ forward("action", "action(${getCurSol("ARG0").toString()},${getCurSol("ARG1").toString()},${getCurSol("ARG2").toString()},${getCurSol("ARG3").toString()},${getCurSol("ARG4").toString()})" ,"butler_router" ) 
+						if(currentSolution.isSuccess()){ emit("action", "action(${getCurSol("ARG0").toString()},${getCurSol("ARG1").toString()},${getCurSol("ARG2").toString()},${getCurSol("ARG3").toString()},${getCurSol("ARG4").toString()})" ) 
 						 }
 						else
 						 { forward("allActionsDone", "allActionsDone" ,"butler_solver" ) 
@@ -73,13 +73,92 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("wait") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t01",targetState="handleAdd",cond=whenDispatch("handleAdd"))
-					transition(edgeName="t02",targetState="handleRemove",cond=whenDispatch("handleRemove"))
-					transition(edgeName="t03",targetState="handleSwap",cond=whenDispatch("handleSwap"))
-					transition(edgeName="t04",targetState="stoppedSolvedAction",cond=whenEvent("stopAppl"))
-					transition(edgeName="t05",targetState="completeAction",cond=whenDispatch("actionComplete"))
-					transition(edgeName="t06",targetState="completeAction",cond=whenDispatch("actionContinue"))
-					transition(edgeName="t07",targetState="waitCmd",cond=whenDispatch("allActionsDone"))
+					 transition(edgeName="t01",targetState="actionPipeline",cond=whenEvent("action"))
+					transition(edgeName="t02",targetState="stoppedSolvedAction",cond=whenEvent("stopAppl"))
+					transition(edgeName="t03",targetState="completeAction",cond=whenDispatch("actionComplete"))
+					transition(edgeName="t04",targetState="completeAction",cond=whenDispatch("actionContinue"))
+					transition(edgeName="t05",targetState="waitCmd",cond=whenDispatch("allActionsDone"))
+				}	 
+				state("actionPipeline") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								forward("action", "action(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"butler_solver" ) 
+						}
+					}
+					 transition(edgeName="t06",targetState="handleContinua",cond=whenDispatch("action"))
+				}	 
+				state("handleContinua") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(continuaPiano,CMD,ARG,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								forward("actionContinue", "actionContinue(${payloadArg(1)},${payloadArg(2)})" ,"butler_solver" ) 
+						}
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("action", "action(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"butler_solver" ) 
+						}
+					}
+					 transition(edgeName="t07",targetState="handleAddAction",cond=whenDispatch("action"))
+				}	 
+				state("handleAddAction") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(aggiungiOggetto,INVENTARIO,NOME,CATEGORIA,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								solve("aggiungi(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})","") //set resVar	
+								solve("assert(done(handleAdd,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
+								solve("inventario(${payloadArg(1)},L)","") //set resVar	
+								var Inv = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
+								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
+						}
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("action", "action(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"butler_solver" ) 
+						}
+					}
+					 transition(edgeName="t08",targetState="handleSwapAction",cond=whenDispatch("action"))
+				}	 
+				state("handleSwapAction") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(spostaOggetto,INVENTARIO1,INVENTARIO2,NOME,CATEGORIA)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								solve("sposta(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})","") //set resVar	
+								solve("assert(done(handleSwap,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)}))","") //set resVar	
+								solve("inventario(${payloadArg(1)},L)","") //set resVar	
+								var Inv = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(1), Inv )
+								solve("inventario(${payloadArg(2)},L)","") //set resVar	
+								Inv = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
+								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
+						}
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("action", "action(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)})" ,"butler_solver" ) 
+						}
+					}
+					 transition(edgeName="t09",targetState="handleRemoveAction",cond=whenDispatch("action"))
+				}	 
+				state("handleRemoveAction") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(rimuoviOggetto,INVENTARIO,NOME,CATEGORIA,_)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("$name in ${currentState.stateName} | $currentMsg")
+								messageRecognized=true
+								solve("rimuovi(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})","") //set resVar	
+								solve("assert(done(handleRemove,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
+								solve("inventario(${payloadArg(1)},L)","") //set resVar	
+								var Inv = getCurSol("L").toString()
+								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
+								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
+						}
+					}
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
 				state("completeAction") { //this:State
 					action { //it:State
@@ -102,60 +181,12 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					}
 					 transition( edgeName="goto",targetState="solveAction", cond=doswitch() )
 				}	 
-				state("handleAdd") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("handleAdd(INV,NAME,CATEG)"), Term.createTerm("handleAdd(INV,NAME,CATEG)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("aggiungi(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})","") //set resVar	
-								solve("showRoomState","") //set resVar	
-								solve("inventario(${payloadArg(0)},L)","") //set resVar	
-								var Inventario = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(0), Inventario )
-								solve("assert(done(handleAdd,${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
-						}
-					}
-					 transition( edgeName="goto",targetState="solveAction", cond=doswitch() )
-				}	 
-				state("handleRemove") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("handleRemove(INV,NAME,CATEG)"), Term.createTerm("handleRemove(INV,NAME,CATEG)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("rimuovi(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})","") //set resVar	
-								solve("showRoomState","") //set resVar	
-								solve("inventario(${payloadArg(0)},L)","") //set resVar	
-								var Inventario = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(0), Inventario )
-								solve("assert(done(handleRemove,${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
-						}
-					}
-					 transition( edgeName="goto",targetState="solveAction", cond=doswitch() )
-				}	 
-				state("handleSwap") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("handleSwap(INV1,INV2,NAME,CATEG)"), Term.createTerm("handleSwap(INV1,INV2,NAME,CATEG)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("$name in ${currentState.stateName} | $currentMsg")
-								solve("sposta(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})","") //set resVar	
-								solve("showRoomState","") //set resVar	
-								solve("inventario(${payloadArg(0)},L)","") //set resVar	
-								var Inventario = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(0), Inventario )
-								solve("inventario(${payloadArg(1)},L)","") //set resVar	
-								Inventario = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(1), Inventario )
-								solve("assert(done(handleSwap,${payloadArg(0)},${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
-						}
-					}
-					 transition( edgeName="goto",targetState="solveAction", cond=doswitch() )
-				}	 
 				state("stoppedSolvedAction") { //this:State
 					action { //it:State
 						println("$name in ${currentState.stateName} | $currentMsg")
 						solve("aggiornaStato(stoppedSolvedAction)","") //set resVar	
 					}
-					 transition(edgeName="t08",targetState="restartSolvedAction",cond=whenEvent("reactivateAppl"))
+					 transition(edgeName="t010",targetState="restartSolvedAction",cond=whenEvent("reactivateAppl"))
 				}	 
 				state("restartSolvedAction") { //this:State
 					action { //it:State

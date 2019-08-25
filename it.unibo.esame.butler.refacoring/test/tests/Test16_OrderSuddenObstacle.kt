@@ -44,12 +44,12 @@ class TestOrderSuddenObstacle {
 	@Test
 	fun orderTest() {
 		println(" %%%%%%% TestPathfinder  test destinazione ")
-		sendCmdMessage(butler_solver!!,5000)
+		sendCmdMessage(butler_solver!!,9000)
 		solveCheckGoal(pathfinder!!,"curPos(3,0)")
 		solveCheckGoal(obstacle!!,"done( obstacle, 3, 0)")
 		delay(3000)
 		removeObstacle(obstacle!!)
-		delay(20000)
+		delay(30000)
 		solveCheckGoal(obstacle!!,"done( removeObstacle, 3, 0)")
 		solveCheckGoal(pathfinder!!,"curPos(0,0)")
 		solveCheckGoalOrder(butler_pathfinder_handler!!,"done(movimento, RES)","location1")
