@@ -3,11 +3,12 @@
  * 			Moreover, it should be able to answer (via CoAP) to questions about its content, asked by humans or machines. 
  * 	
  * 	BACKLOG ITEM:	
- * 		->	FRIDGE in grado di interagire via CoAP
- * 		->	BUTLER in grado di interagire via CoAP
+ * 		->	11
+ * 		->	20
+ *		->	23
  * 
  * 	MODIFICHE DA SPRINT RETROSPECTIVE PRECEDENTI:
- * 		->	il butler_solver adesso emette l'azione corrente, chi è interessato la riceve
+ * 		->	il butler_solver adesso emette l'azione corrente, chi Ã¨ interessato la riceve
  * 
  * 	SPRINT GOAL:
  * 		->	refactoring del butler_solver per inviare azioni
