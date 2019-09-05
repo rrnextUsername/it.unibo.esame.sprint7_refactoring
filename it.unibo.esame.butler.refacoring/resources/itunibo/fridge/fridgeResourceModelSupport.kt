@@ -2,23 +2,21 @@ package itunibo.fridge
 
 import it.unibo.kactor.ActorBasic
 import kotlinx.coroutines.launch
-import itunibo.coap.modelResourceCoap
+import itunibo.coap.modelResourceCoapFridge
 
 object fridgeResourceModelSupport{
-lateinit var resourcecoap : modelResourceCoap
+lateinit var resourcecoap : modelResourceCoapFridge
 	
-	fun setCoapResource( rescoap : modelResourceCoap ){
+	fun setCoapResource( rescoap : modelResourceCoapFridge ){
 		resourcecoap = rescoap
 	}
 	
-	fun exposeFridgeModel( actor: ActorBasic){
+	fun updateFridgeModel( actor: ActorBasic, content: String ){
+		println("			resourceModelSupport updateFridgeModel content=$content")
 			actor.scope.launch{
-				actor.solve("inventario( frigo , INVENTORY )")
-				
-				var result = actor.getCurSol("INVENTORY")
-				actor.emit( "modelContent" , "content( frigo, $result  )" )
-				//resourcecoap.updateState( "fridge( $resVar )" )
-  			}	
-	}	
+				actor.emit( "modelContent" , "content( fridgeInv( state( $content )))" )
+				resourcecoap.updateState(content)
+ 			}	
+	}
 }
 

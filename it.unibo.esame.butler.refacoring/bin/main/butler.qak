@@ -1,8 +1,10 @@
 /*	REQUIREMENTS:
- * 		->	stessi di sprint 5
+ * 		->	 the fridge is intended to be a smart device owning explicit knowledge of the food stored in it. 
+ * 			Moreover, it should be able to answer (via CoAP) to questions about its content, asked by humans or machines. 
  * 	
  * 	BACKLOG ITEM:	
- * 		->	stessi di sprint 5
+ * 		->	FRIDGE in grado di interagire via CoAP
+ * 		->	BUTLER in grado di interagire via CoAP
  * 
  * 	MODIFICHE DA SPRINT RETROSPECTIVE PRECEDENTI:
  * 		->	il butler_solver adesso emette l'azione corrente, chi è interessato la riceve
@@ -10,6 +12,8 @@
  * 	SPRINT GOAL:
  * 		->	refactoring del butler_solver per inviare azioni
  * 		->	refactoring dei vari action_handler per ricevere e gestire azioni 
+ * 		->	aggiungere supporto CoAP al frigo
+ * 		->	aggiungere supporto CoAP al robot
  * 
  * 	SPRINT RETROSPECTIVE:
  */
@@ -73,8 +77,7 @@ Context ctxButler      	ip [host="localhost"    port=8038]   -mqtt
 //-----------------------------------------------------------------
 
 QActor butler_solver context ctxButler{
-	["var messageRecognized: Boolean= false"]
-		
+			
 	State s0 initial {
 		solve( consult( "sysRules.pl" )	 )
 		 
@@ -85,7 +88,8 @@ QActor butler_solver context ctxButler{
 		
 		solve( consult( "dataFunctions.pl" ) )
 		
-		//run itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel" )
+		run itunibo.coap.modelResourceCoapButler.create( myself, "butler", 5685 ) 
+		run itunibo.coap.client.coapClientButler.create( myself, "localhost",5684,"fridge" )
 		
 		solve( inventario(tableInv, L ))				
 		["var TableInv = getCurSol(\"L\").toString()"]
@@ -96,10 +100,10 @@ QActor butler_solver context ctxButler{
 		solve( inventario(dishwasherInv, L ))				
 		["var DishwasherInv = getCurSol(\"L\").toString()"]
 		
-		run itunibo.robot.resourceModelSupport.updateRoomModel( myself, "tableInv", TableInv)
-		run itunibo.robot.resourceModelSupport.updateRoomModel( myself, "butlerInv", ButlerInv)
-		run itunibo.robot.resourceModelSupport.updateRoomModel( myself, "pantryInv", PantryInv)
-		run itunibo.robot.resourceModelSupport.updateRoomModel( myself, "dishwasherInv", DishwasherInv)
+		run itunibo.butler.butlerResourceModelSupport.updateRoomModel( myself, "tableInv", TableInv)
+		run itunibo.butler.butlerResourceModelSupport.updateRoomModel( myself, "butlerInv", ButlerInv)
+		run itunibo.butler.butlerResourceModelSupport.updateRoomModel( myself, "pantryInv", PantryInv)
+		run itunibo.butler.butlerResourceModelSupport.updateRoomModel( myself, "dishwasherInv", DishwasherInv)
 		
 	}Goto waitCmd
 	
@@ -164,7 +168,7 @@ QActor butler_solver context ctxButler{
 						
 			solve( inventario($payloadArg(1), L ))				
 			["var Inv = getCurSol(\"L\").toString()"]
-			run itunibo.robot.resourceModelSupport.updateRoomModel( myself, payloadArg(2), Inv)
+			run itunibo.butler.butlerResourceModelSupport.updateRoomModel( myself, payloadArg(2), Inv)
 			
 			forward butler_solver -m actionComplete : actionComplete( ok )
 			
@@ -184,11 +188,11 @@ QActor butler_solver context ctxButler{
 			
 			solve( inventario($payloadArg(1), L ))				
 			["var Inv = getCurSol(\"L\").toString()"]
-			run itunibo.robot.resourceModelSupport.updateRoomModel( myself, payloadArg(1), Inv)
+			run itunibo.butler.butlerResourceModelSupport.updateRoomModel( myself, payloadArg(1), Inv)
 			
 			solve( inventario($payloadArg(2), L ))				
 			["Inv = getCurSol(\"L\").toString()"]
-			run itunibo.robot.resourceModelSupport.updateRoomModel( myself, payloadArg(2), Inv)
+			run itunibo.butler.butlerResourceModelSupport.updateRoomModel( myself, payloadArg(2), Inv)
 			
 			forward butler_solver -m actionComplete : actionComplete( ok )
 		}
@@ -200,7 +204,6 @@ QActor butler_solver context ctxButler{
 	State handleRemoveAction{
 		onMsg ( action : action(rimuoviOggetto , INVENTARIO , NOME , CATEGORIA , _ ) ){	
 			printCurrentMessage
-			["messageRecognized=true"]
 					
 			solve ( rimuovi( $payloadArg(1), $payloadArg(2), $payloadArg(3) ) )
 			
@@ -208,7 +211,7 @@ QActor butler_solver context ctxButler{
 			
 			solve( inventario($payloadArg(1), L ))				
 			["var Inv = getCurSol(\"L\").toString()"]
-			run itunibo.robot.resourceModelSupport.updateRoomModel( myself, payloadArg(2), Inv)
+			run itunibo.butler.butlerResourceModelSupport.updateRoomModel( myself, payloadArg(2), Inv)
 			
 			forward butler_solver -m actionComplete : actionComplete( ok )
 		}
@@ -316,7 +319,8 @@ QActor butler_fridge_handler context ctxButler{
 			solve ( retract( currentFood( _ ) ) )
 			solve ( assert( currentFood( $payloadArg(2) ) ) )
 			
-			forward fridge -m msgFridge : msgFridge( $payloadArg(1), $payloadArg(2), $payloadArg(3) )
+			//forward fridge -m msgFridge : msgFridge( $payloadArg(1), $payloadArg(2), $payloadArg(3) )
+			run itunibo.coap.client.coapClientButler.put( "${payloadArg(1)}, ${payloadArg(2)}, ${payloadArg(3)}") 
 			
 			solve ( assert( done( actionMsgFridgeSync, $payloadArg(1), $payloadArg(2), $payloadArg(3) ) ) )  // testing function			
 		}
@@ -359,7 +363,7 @@ QActor butler_fridge_handler context ctxButler{
 			solve( currentFood( CIBO ))	
 			["val Cibo= getCurSol(\"CIBO\").toString()"]
 			
-			run itunibo.robot.resourceModelSupport.updateMissingFoodModel( myself, Cibo )
+			run itunibo.butler.butlerResourceModelSupport.emitMissingFood( myself, Cibo )
 			forward butler_solver -m actionComplete : actionComplete ( fail )
 		}
 	} Goto wait
@@ -603,7 +607,8 @@ QActor fridge context ctxButler {
 		
 		solve( showResourceModel ) 			
 		
-		//run itunibo.coap.modelResourceCoap.create( myself, "resourcemodel" ) //CoAP access	
+		run itunibo.coap.modelResourceCoapFridge.create( myself, "fridge", 5684 ) //CoAP access	
+		run itunibo.coap.client.coapClientFridge.create( myself, "localhost",5685,"butler" )	
 		
 		emit exposeFood : exposeFood	
 	}Goto waitCmd
@@ -614,7 +619,7 @@ QActor fridge context ctxButler {
 					
 	State fridgePipeline{		
 		onMsg( msgFridge : msgFridge( _ , _ , _ ) ){			
-			["storeCurrentMessageForReply()"]
+			//["storeCurrentMessageForReply()"]
 			
 			printCurrentMessage
 			forward fridge -m msgFridge : msgFridge( $payloadArg(0), $payloadArg(1), $payloadArg(2))
@@ -633,9 +638,11 @@ QActor fridge context ctxButler {
 			
 			solve( inventario(frigoInv, L ))				
 			["val Inventario = getCurSol(\"L\").toString()"]			
-			run itunibo.robot.resourceModelSupport.updateFridgeModel( myself, Inventario)
+			run itunibo.fridge.fridgeResourceModelSupport.updateFridgeModel( myself, Inventario)
 			
-			["replyToCaller(\"replyFridge\", \"replyFridge(null)\")"]
+			//["replyToCaller(\"replyFridge\", \"replyFridge(null)\")"]
+			run itunibo.coap.client.coapClientFridge.put( "null")
+			
 		}
 		onMsg( msgFridge : msgFridge( _ , _ , _ ) ){
 			forward fridge -m msgFridge : msgFridge( $payloadArg(0), $payloadArg(1), $payloadArg(2))
@@ -654,9 +661,10 @@ QActor fridge context ctxButler {
 			
 			solve( inventario(frigoInv, L ))				
 			["val Inventario = getCurSol(\"L\").toString()"]			
-			run itunibo.robot.resourceModelSupport.updateFridgeModel( myself, Inventario)
+			run itunibo.fridge.fridgeResourceModelSupport.updateFridgeModel( myself, Inventario)
 			
-			["replyToCaller(\"replyFridge\", \"replyFridge(null)\")"]
+			//["replyToCaller(\"replyFridge\", \"replyFridge(null)\")"]
+			run itunibo.coap.client.coapClientFridge.put( "null")
 		}
 		onMsg( msgFridge : msgFridge( _ , _ , _ ) ){
 			forward fridge -m msgFridge : msgFridge( $payloadArg(0), $payloadArg(1), $payloadArg(2))
@@ -673,10 +681,17 @@ QActor fridge context ctxButler {
 			solve( presenza(frigoInv, $payloadArg(1),$payloadArg(2)) )
 			
 			ifSolved {
-				["replyToCaller(\"replyFridge\", \"replyFridge(present)\")"]
+				//["replyToCaller(\"replyFridge\", \"replyFridge(present)\")"]
+				run itunibo.coap.client.coapClientFridge.put( "present")
+				
 			} else {				
-				["replyToCaller(\"replyFridge\", \"replyFridge(absent)\")"]
+				//["replyToCaller(\"replyFridge\", \"replyFridge(absent)\")"]
+				run itunibo.coap.client.coapClientFridge.put( "absent")
 			}
+			
+			solve( inventario(frigoInv, L ))				
+			["val Inventario = getCurSol(\"L\").toString()"]			
+			run itunibo.fridge.fridgeResourceModelSupport.updateFridgeModel( myself, Inventario)
 			
 		}
 		onMsg( msgFridge : msgFridge( _ , _ , _ ) ){
@@ -690,7 +705,8 @@ QActor fridge context ctxButler {
 			
 			solve ( assert( received( $payloadArg(0), $payloadArg(1), $payloadArg(2) ) ) ) 
 			
-			["replyToCaller(\"replyFridge\", \"replyFridge(null})\")"]
+			//["replyToCaller(\"replyFridge\", \"replyFridge(null})\")"]
+			run itunibo.coap.client.coapClientFridge.put( "null")
 			
 		}
 	} Goto waitCmd
@@ -709,7 +725,7 @@ QActor fridge context ctxButler {
 			
 			solve( inventario(frigoInv, L ))				
 			["val Inventario = getCurSol(\"L\").toString()"]			
-			run itunibo.robot.resourceModelSupport.updateFridgeModel( myself, Inventario)
+			run itunibo.fridge.fridgeResourceModelSupport.updateFridgeModel( myself, Inventario)
 				
 			emit modelContent :  modelContent( frigo (Inventario) ) //testing
 		}

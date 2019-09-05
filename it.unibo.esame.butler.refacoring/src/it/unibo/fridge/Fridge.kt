@@ -22,6 +22,8 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						solve("consult('fridgeModel.pl')","") //set resVar	
 						solve("consult('dataFunctions.pl')","") //set resVar	
 						solve("showResourceModel","") //set resVar	
+						itunibo.coap.modelResourceCoapFridge.create(myself ,"fridge", 5684 )
+						itunibo.coap.client.coapClientFridge.create(myself ,"localhost", 5685, "butler" )
 						emit("exposeFood", "exposeFood" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -36,7 +38,6 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(_,_,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								storeCurrentMessageForReply()
 								println("$name in ${currentState.stateName} | $currentMsg")
 								forward("msgFridge", "msgFridge(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)})" ,"fridge" ) 
 						}
@@ -54,8 +55,8 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								solve("showResourceModel","") //set resVar	
 								solve("inventario(frigoInv,L)","") //set resVar	
 								val Inventario = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
-								replyToCaller("replyFridge", "replyFridge(null)")
+								itunibo.fridge.fridgeResourceModelSupport.updateFridgeModel(myself ,Inventario )
+								itunibo.coap.client.coapClientFridge.put( "null"  )
 						}
 						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(_,_,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -75,8 +76,8 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								solve("showResourceModel","") //set resVar	
 								solve("inventario(frigoInv,L)","") //set resVar	
 								val Inventario = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
-								replyToCaller("replyFridge", "replyFridge(null)")
+								itunibo.fridge.fridgeResourceModelSupport.updateFridgeModel(myself ,Inventario )
+								itunibo.coap.client.coapClientFridge.put( "null"  )
 						}
 						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(_,_,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -93,11 +94,14 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
 								solve("assert(done(handleQuery,${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
 								solve("presenza(frigoInv,${payloadArg(1)},${payloadArg(2)})","") //set resVar	
-								if(currentSolution.isSuccess()) { replyToCaller("replyFridge", "replyFridge(present)")
+								if(currentSolution.isSuccess()) { itunibo.coap.client.coapClientFridge.put( "present"  )
 								 }
 								else
-								{ replyToCaller("replyFridge", "replyFridge(absent)")
+								{ itunibo.coap.client.coapClientFridge.put( "absent"  )
 								 }
+								solve("inventario(frigoInv,L)","") //set resVar	
+								val Inventario = getCurSol("L").toString()
+								itunibo.fridge.fridgeResourceModelSupport.updateFridgeModel(myself ,Inventario )
 						}
 						if( checkMsgContent( Term.createTerm("msgFridge(ACTION,NAME,CATEGORY)"), Term.createTerm("msgFridge(_,_,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -112,7 +116,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("assert(received(${payloadArg(0)},${payloadArg(1)},${payloadArg(2)}))","") //set resVar	
-								replyToCaller("replyFridge", "replyFridge(null})")
+								itunibo.coap.client.coapClientFridge.put( "null"  )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -132,7 +136,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								solve("inventario(frigoInv,INVENTORY)","") //set resVar	
 								solve("inventario(frigoInv,L)","") //set resVar	
 								val Inventario = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,Inventario )
+								itunibo.fridge.fridgeResourceModelSupport.updateFridgeModel(myself ,Inventario )
 								emit("modelContent", "modelContent(frigo(Inventario))" ) 
 						}
 					}

@@ -45,7 +45,7 @@ class Butler_fridge_handler ( name: String, scope: CoroutineScope ) : ActorBasic
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("retract(currentFood(_))","") //set resVar	
 								solve("assert(currentFood(${payloadArg(2)}))","") //set resVar	
-								forward("msgFridge", "msgFridge(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})" ,"fridge" ) 
+								itunibo.coap.client.coapClientButler.put( "${payloadArg(1)}, ${payloadArg(2)}, ${payloadArg(3)}"  )
 								solve("assert(done(actionMsgFridgeSync,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
 						}
 					}
@@ -98,7 +98,7 @@ class Butler_fridge_handler ( name: String, scope: CoroutineScope ) : ActorBasic
 								println("$name in ${currentState.stateName} | $currentMsg")
 								solve("currentFood(CIBO)","") //set resVar	
 								val Cibo= getCurSol("CIBO").toString()
-								itunibo.robot.resourceModelSupport.updateMissingFoodModel(myself ,Cibo )
+								itunibo.butler.butlerResourceModelSupport.emitMissingFood(myself ,Cibo )
 								forward("actionComplete", "actionComplete(fail)" ,"butler_solver" ) 
 						}
 					}

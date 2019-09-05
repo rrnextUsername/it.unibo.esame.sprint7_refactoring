@@ -15,7 +15,6 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var messageRecognized: Boolean= false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -24,6 +23,8 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						solve("consult('cmds.pl')","") //set resVar	
 						solve("consult('solverModel.pl')","") //set resVar	
 						solve("consult('dataFunctions.pl')","") //set resVar	
+						itunibo.coap.modelResourceCoapButler.create(myself ,"butler", 5685 )
+						itunibo.coap.client.coapClientButler.create(myself ,"localhost", 5684, "fridge" )
 						solve("inventario(tableInv,L)","") //set resVar	
 						var TableInv = getCurSol("L").toString()
 						solve("inventario(butlerInv,L)","") //set resVar	
@@ -32,10 +33,10 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						var PantryInv = getCurSol("L").toString()
 						solve("inventario(dishwasherInv,L)","") //set resVar	
 						var DishwasherInv = getCurSol("L").toString()
-						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"tableInv", TableInv )
-						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"butlerInv", ButlerInv )
-						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"pantryInv", PantryInv )
-						itunibo.robot.resourceModelSupport.updateRoomModel(myself ,"dishwasherInv", DishwasherInv )
+						itunibo.butler.butlerResourceModelSupport.updateRoomModel(myself ,"tableInv", TableInv )
+						itunibo.butler.butlerResourceModelSupport.updateRoomModel(myself ,"butlerInv", ButlerInv )
+						itunibo.butler.butlerResourceModelSupport.updateRoomModel(myself ,"pantryInv", PantryInv )
+						itunibo.butler.butlerResourceModelSupport.updateRoomModel(myself ,"dishwasherInv", DishwasherInv )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -112,7 +113,7 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								solve("assert(done(handleAdd,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
 								solve("inventario(${payloadArg(1)},L)","") //set resVar	
 								var Inv = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
+								itunibo.butler.butlerResourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
 								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
 						}
 						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
@@ -131,10 +132,10 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								solve("assert(done(handleSwap,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)},${payloadArg(4)}))","") //set resVar	
 								solve("inventario(${payloadArg(1)},L)","") //set resVar	
 								var Inv = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(1), Inv )
+								itunibo.butler.butlerResourceModelSupport.updateRoomModel(myself ,payloadArg(1), Inv )
 								solve("inventario(${payloadArg(2)},L)","") //set resVar	
 								Inv = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
+								itunibo.butler.butlerResourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
 								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
 						}
 						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(_,_,_,_,_)"), 
@@ -149,12 +150,11 @@ class Butler_solver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						if( checkMsgContent( Term.createTerm("action(ARG0,ARG1,ARG2,ARG3,ARG4)"), Term.createTerm("action(rimuoviOggetto,INVENTARIO,NOME,CATEGORIA,_)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								println("$name in ${currentState.stateName} | $currentMsg")
-								messageRecognized=true
 								solve("rimuovi(${payloadArg(1)},${payloadArg(2)},${payloadArg(3)})","") //set resVar	
 								solve("assert(done(handleRemove,${payloadArg(1)},${payloadArg(2)},${payloadArg(3)}))","") //set resVar	
 								solve("inventario(${payloadArg(1)},L)","") //set resVar	
 								var Inv = getCurSol("L").toString()
-								itunibo.robot.resourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
+								itunibo.butler.butlerResourceModelSupport.updateRoomModel(myself ,payloadArg(2), Inv )
 								forward("actionComplete", "actionComplete(ok)" ,"butler_solver" ) 
 						}
 					}
