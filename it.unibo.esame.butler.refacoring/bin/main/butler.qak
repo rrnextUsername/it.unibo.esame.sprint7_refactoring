@@ -1,3 +1,21 @@
+/*	REQUIREMENTS:
+ * 		->	stessi di sprint 5
+ * 	
+ * 	BACKLOG ITEM:	
+ * 		->	stessi di sprint 5
+ * 
+ * 	MODIFICHE DA SPRINT RETROSPECTIVE PRECEDENTI:
+ * 		->	il butler_solver adesso emette l'azione corrente, chi è interessato la riceve
+ * 
+ * 	SPRINT GOAL:
+ * 		->	refactoring del butler_solver per inviare azioni
+ * 		->	refactoring dei vari action_handler per ricevere e gestire azioni 
+ * 
+ * 	SPRINT RETROSPECTIVE:
+ */
+ 
+ 
+ 
  System butler 
  
 /* Aggiunto quinto argomento alla regola action( ... )
